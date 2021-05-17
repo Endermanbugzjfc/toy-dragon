@@ -7,6 +7,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/NebulousLabs/go-upnp"
 	_ "gitlab.com/NebulousLabs/go-upnp"
 	"io/ioutil"
 	"os"
@@ -36,6 +37,8 @@ func main() {
 	if err := serverobject.Start(); err != nil {
 		log.Fatalln(err)
 	}
+
+	upnpFoward(log)
 
 	for {
 		if _, err := serverobject.Accept(); err != nil {
@@ -76,4 +79,31 @@ func readConfig() (server.Config, error) {
 		return c, fmt.Errorf("error decoding config: %v", err)
 	}
 	return c, nil
+}
+
+func upnpFoward(log *logrus.Logger) {
+
+	log.Infoln("Forwarding UPNP...")
+
+	// connect to router
+	d, err := upnp.Discover()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// discover external IP
+	ip, err := d.ExternalIP()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Infoln("UPNP forward succeeds, your external IP is:", ip)
+
+	// forward a port
+	err = d.Forward(19132, "upnp test")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer d.Clear(19132)
+
 }
