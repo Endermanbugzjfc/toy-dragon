@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"server/system"
 )
 
 func main() {
@@ -33,22 +34,26 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	serverobject := server.New(&config, log)
+	fmt.Println(config)
+
+	serverobject := server.New(&config.SystemConfig, log)
 	serverobject.CloseOnProgramEnd()
-
-	upnpFoward(log)
-
-	serverStartup(serverobject, log)
-}
-
-func serverStartup(serverobject *server.Server, log *logrus.Logger) {
 	if err := serverobject.Start(); err != nil {
 		log.Fatalln(err)
 	}
+
+	if config.UPNPForward {
+		upnpFoward(log)
+	}
+
+	listenServerEvents(serverobject)
+}
+
+func listenServerEvents(serverobject *server.Server) {
 	for {
 		err := errors.New("")
 		if _, err := serverobject.Accept(); err != nil {
-			continue
+			return
 		}
 		fmt.Println(err)
 	}
@@ -65,8 +70,8 @@ func loopbackExempted() bool {
 }
 
 // readConfig reads the configuration from the config.toml file, or creates the file if it does not yet exist.
-func readConfig() (server.Config, error) {
-	c := server.DefaultConfig()
+func readConfig() (system.CustomConfig, error) {
+	c := system.CustomConfig{SystemConfig: server.DefaultConfig()}
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(c)
 		if err != nil {
