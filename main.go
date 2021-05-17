@@ -71,7 +71,7 @@ func loopbackExempted() bool {
 
 // readConfig reads the configuration from the config.toml file, or creates the file if it does not yet exist.
 func readConfig() (system.CustomConfig, error) {
-	c := system.CustomConfig{SystemConfig: server.DefaultConfig()}
+	c := system.CustomConfig{SystemConfig: server.DefaultConfig(), UPNPForward: false}
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(c)
 		if err != nil {
