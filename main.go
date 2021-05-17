@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/player/chat"
@@ -34,15 +35,20 @@ func main() {
 
 	serverobject := server.New(&config, log)
 	serverobject.CloseOnProgramEnd()
-	if err := serverobject.Start(); err != nil {
-		log.Fatalln(err)
-	}
 
 	upnpFoward(log)
 
+	serverStartup(serverobject, log)
+}
+
+func serverStartup(serverobject *server.Server, log *logrus.Logger) {
+	if err := serverobject.Start(); err != nil {
+		log.Fatalln(err)
+	}
 	for {
+		err := errors.New("")
 		if _, err := serverobject.Accept(); err != nil {
-			return
+			continue
 		}
 		fmt.Println(err)
 	}
@@ -104,6 +110,11 @@ func upnpFoward(log *logrus.Logger) {
 		log.Fatal(err)
 	}
 
-	defer d.Clear(19132)
+	defer func(d *upnp.IGD, port uint16) {
+		err := d.Clear(port)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(d, 19132)
 
 }
