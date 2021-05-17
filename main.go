@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/df-mc/dragonfly/dragonfly"
-	"github.com/df-mc/dragonfly/dragonfly/player/chat"
+	"github.com/df-mc/dragonfly/server"
+	"github.com/df-mc/dragonfly/server/player/chat"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
+	_ "gitlab.com/NebulousLabs/go-upnp"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -30,16 +31,17 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	server := dragonfly.New(&config, log)
-	server.CloseOnProgramEnd()
-	if err := server.Start(); err != nil {
+	serverobject := server.New(&config, log)
+	serverobject.CloseOnProgramEnd()
+	if err := serverobject.Start(); err != nil {
 		log.Fatalln(err)
 	}
 
 	for {
-		if _, err := server.Accept(); err != nil {
+		if _, err := serverobject.Accept(); err != nil {
 			return
 		}
+		fmt.Println(err)
 	}
 }
 
@@ -54,8 +56,8 @@ func loopbackExempted() bool {
 }
 
 // readConfig reads the configuration from the config.toml file, or creates the file if it does not yet exist.
-func readConfig() (dragonfly.Config, error) {
-	c := dragonfly.DefaultConfig()
+func readConfig() (server.Config, error) {
+	c := server.DefaultConfig()
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(c)
 		if err != nil {
