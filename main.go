@@ -36,13 +36,14 @@ func main() {
 		upnpFoward(log)
 	}
 
-	listenServerEvents(serverobject)
+	listenServerEvents(serverobject, log)
 }
 
-func listenServerEvents(serverobject *server.Server) {
+func listenServerEvents(serverobject *server.Server, log *logrus.Logger) {
 	for {
 		err := errors.New("")
-		if _, err := serverobject.Accept(); err != nil {
+		if player, err := serverobject.Accept(); err != nil {
+			player.Handle(&system.EventListener{Log: log, Player: player})
 			return
 		}
 		fmt.Println(err)
