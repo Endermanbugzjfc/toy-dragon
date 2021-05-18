@@ -13,5 +13,6 @@ type EventListener struct {
 }
 
 func (el *EventListener) HandleChat(ctx *event.Context, message *string) {
+	el.Log.Infof("Event triggered: %+v\n", ctx)
 	el.Log.Infoln(el.Player.Name() + ": " + *message)
 }

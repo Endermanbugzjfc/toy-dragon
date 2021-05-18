@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/player/chat"
@@ -41,11 +40,11 @@ func main() {
 
 func listenServerEvents(serverobject *server.Server, log *logrus.Logger) {
 	for {
-		err := errors.New("")
-		if player, err := serverobject.Accept(); err != nil {
-			player.Handle(&system.EventListener{Log: log, Player: player})
+		player, err := serverobject.Accept()
+		if err != nil {
 			return
 		}
+		player.Handle(&system.EventListener{Log: log, Player: player})
 		fmt.Println(err)
 	}
 }
