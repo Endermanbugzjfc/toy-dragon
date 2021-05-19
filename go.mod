@@ -4,8 +4,10 @@ go 1.13
 
 require (
 	github.com/df-mc/dragonfly v0.0.5-0.20210515195603-0dd2d00cc3b9
+	github.com/gen2brain/dlgs v0.0.0-20210406143744-f512297a108e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20210503212227-fb464eba2686 // indirect
 	github.com/klauspost/compress v1.12.2 // indirect
 	github.com/muhammadmuzzammil1998/jsonc v0.0.0-20201229145248-615b0916ca38 // indirect
 	github.com/pelletier/go-toml v1.9.1

@@ -6,15 +6,13 @@ import (
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player/chat"
-	"github.com/df-mc/dragonfly/server/world"
-	"github.com/go-gl/mathgl/mgl64"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
-	_ "gitlab.com/NebulousLabs/go-upnp"
 	"io/ioutil"
 	"os"
 	"server/system"
+	"server/system/cmds"
 	"strings"
 	"time"
 )
@@ -42,6 +40,8 @@ func main() {
 	if config.UPNPForward {
 		upnpFoward(log)
 	}
+
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{Server: serverobject}))
 
 	console()
 
@@ -117,7 +117,7 @@ func upnpFoward(log *logrus.Logger) {
 func console() {
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		source := &Console{}
+		source := &cmds.Console{Server: serverobject}
 		fmt.Println("Type help for commands.")
 		// I don't use fmt.Scan() because the fmt package intentionally filters out whitespaces, this is how it is implemented.
 		scanner := bufio.NewScanner(os.Stdin)
@@ -143,28 +143,4 @@ func console() {
 			}
 		}
 	}()
-}
-
-type Console struct{}
-
-func (Console) SendCommandOutput(output *cmd.Output) {
-	for _, m := range output.Messages() {
-		fmt.Println(m)
-	}
-
-	for _, e := range output.Errors() {
-		fmt.Println(e.Error())
-	}
-}
-
-func (Console) Name() string {
-	return "Console"
-}
-
-func (Console) Position() mgl64.Vec3 {
-	return mgl64.Vec3{}
-}
-
-func (Console) World() *world.World {
-	return serverobject.World()
 }
