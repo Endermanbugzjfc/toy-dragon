@@ -1,8 +1,11 @@
 package cmds
 
 import (
+	"fmt"
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/df-mc/dragonfly/server/player"
+	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/gen2brain/dlgs"
 )
 
@@ -16,16 +19,55 @@ func (cmd Kick) SetServer(obj *server.Server) Kick {
 	return cmd
 }
 
-func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
-	_, ok := sender.(*Console)
-	if !ok {
-		output.Printf("This command can only be run form console!")
-		return
+type SimpleMenuSubmittable struct {
+	callback func(submitter form.Submitter, pressed form.Button)
+}
+
+func (submittable *SimpleMenuSubmittable) SetCallback(cb func(submitter form.Submitter, pressed form.Button)) SimpleMenuSubmittable {
+	submittable.callback = cb
+	return *submittable
+}
+
+func (submittable SimpleMenuSubmittable) Submit(submitter form.Submitter, pressed form.Button) {
+	if submittable.callback != nil {
+		submittable.callback(submitter, pressed)
 	}
+}
+
+func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 	var name []string
-	for _, sp := range serverobj.Players() {
+	plist := serverobj.Players()
+	for _, sp := range plist {
 		name = append(name, sp.Name())
 	}
+
+	_, ok := sender.(*Console)
+	if !ok {
+		if len(name) < 1 {
+			sender.(*player.Player).SendForm(form.NewModal(SimpleMenuSubmittable{}, ":(").WithBody("You have no player on your server, what a poor guy (puk1 gaai1)!)"))
+			return
+		}
+		var buttons []form.Button
+		submittable := SimpleMenuSubmittable{}
+		formobj := form.NewMenu(submittable.SetCallback(func(submitter form.Submitter, pressed form.Button) {
+			for index, sb := range buttons {
+				if sb == pressed {
+					output.Printf("Kicked player: " + plist[index].Name())
+					sender.SendCommandOutput(output)
+					kick(plist[index])
+					break
+				}
+			}
+		}), "Kick Hammer").WithBody("Choose an unlucky victim to bonk")
+		for _, sn := range name {
+			fmt.Println("Button added")
+			formobj = formobj.WithButtons(form.NewButton(sn, ""))
+		}
+		buttons = formobj.Buttons()
+		sender.(*player.Player).SendForm(formobj)
+		return
+	}
+
 	go func() {
 		if len(name) < 1 {
 			_, _ = dlgs.Warning(":(", "You have no player on your server, what a poor guy (puk1 gaai1)!)")
@@ -36,13 +78,18 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 			panic(err)
 		}
 		if confirmed {
-			for _, sp := range serverobj.Players() {
+			for _, sp := range plist {
 				if sp.Name() == result {
-					output.Printf("Kicked player: " + sp.Name())
-					sp.Disconnect("Kicked by admin")
+					output.Printf("Kicked player: " + result)
+					sender.SendCommandOutput(output)
+					kick(sp)
 					break
 				}
 			}
 		}
 	}()
+}
+
+func kick(sp *player.Player) {
+	sp.Disconnect("Kicked by admin")
 }
