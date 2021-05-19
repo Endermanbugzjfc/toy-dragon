@@ -41,10 +41,11 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 		name = append(name, sp.Name())
 	}
 
-	_, ok := sender.(*Console)
-	if !ok {
+	if _, ok := sender.(*Console); !ok {
 		if len(name) < 1 {
-			sender.(*player.Player).SendForm(form.NewModal(SimpleMenuSubmittable{}, ":(").WithBody("You have no player on your server, what a poor guy (puk1 gaai1)!)"))
+			return
+		}
+		if _, ok := sender.(*player.Player); !ok {
 			return
 		}
 		var buttons []form.Button
