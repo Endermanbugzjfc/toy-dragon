@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/df-mc/dragonfly v0.0.5-0.20210515195603-0dd2d00cc3b9
 	github.com/gen2brain/dlgs v0.0.0-20210406143744-f512297a108e // indirect
+	github.com/go-gl/mathgl v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20210503212227-fb464eba2686 // indirect

@@ -7,26 +7,38 @@ import (
 )
 
 type Kick struct {
-	Server *server.Server
+}
+
+var serverobj *server.Server
+
+func (cmd Kick) SetServer(obj *server.Server) Kick {
+	serverobj = obj
+	return cmd
 }
 
 func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
-	switch sender.(type) {
-	default:
-		output.Print("This command can only be run form console!")
+	_, ok := sender.(*Console)
+	if !ok {
+		output.Printf("This command can only be run form console!")
 		return
-	case Console:
-		break
 	}
 	var name []string
-	for _, sp := range cmd.Server.Players() {
+	for _, sp := range serverobj.Players() {
 		name = append(name, sp.Name())
 	}
 	go func() {
-		result, cancelled, _ := dlgs.List("Kick Hammer", "Choose a unlucky player to bonk", name)
-		if !cancelled {
-			for _, sp := range cmd.Server.Players() {
+		if len(name) < 1 {
+			_, _ = dlgs.Warning(":(", "You have no player on your server, what a poor guy (puk1 gaai1)!)")
+			return
+		}
+		result, confirmed, err := dlgs.List("Kick Hammer", "Choose an unlucky victim to bonk", name)
+		if err != nil {
+			panic(err)
+		}
+		if confirmed {
+			for _, sp := range serverobj.Players() {
 				if sp.Name() == result {
+					output.Printf("Kicked player: " + sp.Name())
 					sp.Disconnect("Kicked by admin")
 					break
 				}

@@ -12,7 +12,7 @@ type Console struct {
 	Server *server.Server
 }
 
-func (*Console) SendCommandOutput(output *cmd.Output) {
+func (Console) SendCommandOutput(output *cmd.Output) {
 	for _, m := range output.Messages() {
 		fmt.Println(m)
 	}
@@ -22,14 +22,14 @@ func (*Console) SendCommandOutput(output *cmd.Output) {
 	}
 }
 
-func (*Console) Name() string {
+func (Console) Name() string {
 	return "Console"
 }
 
-func (*Console) Position() mgl64.Vec3 {
+func (Console) Position() mgl64.Vec3 {
 	return mgl64.Vec3{}
 }
 
-func (c *Console) World() *world.World {
+func (c Console) World() *world.World {
 	return c.Server.World()
 }

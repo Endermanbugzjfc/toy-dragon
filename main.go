@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-var serverobject *server.Server
+var serverobj *server.Server
 
 func main() {
 	log := logrus.New()
@@ -31,9 +31,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	serverobject := server.New(&config.SystemConfig, log)
-	serverobject.CloseOnProgramEnd()
-	if err := serverobject.Start(); err != nil {
+	serverobj := server.New(&config.SystemConfig, log)
+	serverobj.CloseOnProgramEnd()
+	if err := serverobj.Start(); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -41,16 +41,16 @@ func main() {
 		upnpFoward(log)
 	}
 
-	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{Server: serverobject}))
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{}.SetServer(serverobj)))
 
 	console()
 
-	listenServerEvents(serverobject, log)
+	listenServerEvents(serverobj, log)
 }
 
-func listenServerEvents(serverobject *server.Server, log *logrus.Logger) {
+func listenServerEvents(serverobj *server.Server, log *logrus.Logger) {
 	for {
-		player, err := serverobject.Accept()
+		player, err := serverobj.Accept()
 		if err != nil {
 			return
 		}
@@ -117,7 +117,7 @@ func upnpFoward(log *logrus.Logger) {
 func console() {
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		source := &cmds.Console{Server: serverobject}
+		source := &cmds.Console{Server: serverobj}
 		fmt.Println("Type help for commands.")
 		// I don't use fmt.Scan() because the fmt package intentionally filters out whitespaces, this is how it is implemented.
 		scanner := bufio.NewScanner(os.Stdin)
