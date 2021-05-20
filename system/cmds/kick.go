@@ -45,7 +45,7 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 		if len(name) < 1 {
 			return
 		}
-		if _, ok := sender.(*player.Player); !ok {
+		if _, ok := sender.(form.Submitter); !ok {
 			return
 		}
 		var buttons []form.Button
