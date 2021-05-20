@@ -56,11 +56,12 @@ func listenServerEvents(serverobj *server.Server, log *logrus.Logger, config sys
 			return
 		}
 		if config.Notification.PlayerJoin {
-			name := player.Name()
+			pj := "[" + config.SystemConfig.Server.Name + "] Player joined"
+			msg := "Player " + player.Name() + " has joined the server"
 			if config.Notification.AlertSound {
-				_ = beeep.Alert("Player joined", "Player "+name+" has joined the server", "")
+				_ = beeep.Alert(pj, msg, "")
 			} else {
-				_ = beeep.Notify("Player joined", "Player "+name+" has joined the server", "")
+				_ = beeep.Notify(pj, msg, "'")
 			}
 		}
 		player.Handle(&system.EventListener{Log: log, Player: player})
