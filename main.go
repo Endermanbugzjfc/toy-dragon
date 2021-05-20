@@ -1,4 +1,4 @@
-package system
+package main
 
 import (
 	"bufio"
@@ -12,8 +12,8 @@ import (
 	"gitlab.com/NebulousLabs/go-upnp"
 	"io/ioutil"
 	"os"
+	cmds2 "server/cmds"
 	"server/system"
-	"server/system/cmds"
 	"strings"
 	"time"
 )
@@ -23,7 +23,8 @@ var Config *system.CustomConfig
 var Log *logrus.Logger
 
 func main() {
-	Log := logrus.New()
+	system.Log = logrus.New()
+	Log = system.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	Log.Level = logrus.DebugLevel
 
@@ -33,8 +34,10 @@ func main() {
 	if err != nil {
 		Log.Fatalln(err)
 	}
+	system.Config = &Config
 
-	Serverobj := server.New(&Config.SystemConfig, Log)
+	system.Serverobj = server.New(&Config.SystemConfig, Log)
+	Serverobj = system.Serverobj
 	Serverobj.CloseOnProgramEnd()
 	if err := Serverobj.Start(); err != nil {
 		Log.Fatalln(err)
@@ -44,7 +47,7 @@ func main() {
 		upnpFoward()
 	}
 
-	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{}))
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds2.Kick{}))
 
 	console()
 
@@ -131,7 +134,7 @@ func upnpFoward() {
 func console() {
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		source := &cmds.Console{}
+		source := &cmds2.Console{}
 		fmt.Println("Type help for commands.")
 		// I don't use fmt.Scan() because the fmt package intentionally filters out whitespaces, this is how it is implemented.
 		scanner := bufio.NewScanner(os.Stdin)

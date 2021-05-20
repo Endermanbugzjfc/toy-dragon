@@ -6,7 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/gen2brain/dlgs"
-	system "server"
+	"server/system"
 )
 
 type Kick struct {
