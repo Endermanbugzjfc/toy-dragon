@@ -6,6 +6,7 @@ import (
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player/chat"
+	"github.com/gen2brain/beeep"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
@@ -45,14 +46,22 @@ func main() {
 
 	console()
 
-	listenServerEvents(serverobj, log)
+	listenServerEvents(serverobj, log, config)
 }
 
-func listenServerEvents(serverobj *server.Server, log *logrus.Logger) {
+func listenServerEvents(serverobj *server.Server, log *logrus.Logger, config system.CustomConfig) {
 	for {
 		player, err := serverobj.Accept()
 		if err != nil {
 			return
+		}
+		if config.Notification.PlayerJoin {
+			name := player.Name()
+			if config.Notification.AlertSound {
+				_ = beeep.Alert("Player joined", "Player "+name+" has joined the server", "")
+			} else {
+				_ = beeep.Notify("Player joined", "Player "+name+" has joined the server", "")
+			}
 		}
 		player.Handle(&system.EventListener{Log: log, Player: player})
 		fmt.Println(err)

@@ -9,6 +9,7 @@ type CustomConfig struct {
 		PlayerJoin  bool
 		PlayerLeave bool
 		PlayerChat  bool
+		AlertSound  bool
 	}
 }
 
