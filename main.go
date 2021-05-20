@@ -19,7 +19,7 @@ import (
 )
 
 var Serverobj *server.Server
-var Config *system.CustomConfig
+var Config system.CustomConfig
 var Log *logrus.Logger
 
 func main() {
@@ -30,11 +30,12 @@ func main() {
 
 	chat.Global.Subscribe(chat.StdoutSubscriber{})
 
-	Config, err := readConfig()
+	config, err := readConfig()
 	if err != nil {
 		Log.Fatalln(err)
 	}
-	system.Config = &Config
+	Config = config
+	system.Config = Config
 
 	system.Serverobj = server.New(&Config.SystemConfig, Log)
 	Serverobj = system.Serverobj
@@ -60,6 +61,7 @@ func listenServerEvents() {
 		if err != nil {
 			return
 		}
+		fmt.Println(Config)
 		if Config.Notification.PlayerJoin {
 			pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
 			msg := "Player " + player.Name() + " has joined the server"

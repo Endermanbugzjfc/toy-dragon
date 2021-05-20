@@ -7,4 +7,4 @@ import (
 
 var Serverobj *server.Server
 var Log *logrus.Logger
-var Config *CustomConfig
+var Config CustomConfig
