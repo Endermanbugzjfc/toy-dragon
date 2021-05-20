@@ -1,4 +1,4 @@
-package main
+package system
 
 import (
 	"bufio"
@@ -18,53 +18,57 @@ import (
 	"time"
 )
 
-var serverobj *server.Server
+var Serverobj *server.Server
+var Config *system.CustomConfig
+var Log *logrus.Logger
 
 func main() {
-	log := logrus.New()
-	log.Formatter = &logrus.TextFormatter{ForceColors: true}
-	log.Level = logrus.DebugLevel
+	Log := logrus.New()
+	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
+	Log.Level = logrus.DebugLevel
 
 	chat.Global.Subscribe(chat.StdoutSubscriber{})
 
-	config, err := readConfig()
+	Config, err := readConfig()
 	if err != nil {
-		log.Fatalln(err)
+		Log.Fatalln(err)
 	}
 
-	serverobj := server.New(&config.SystemConfig, log)
-	serverobj.CloseOnProgramEnd()
-	if err := serverobj.Start(); err != nil {
-		log.Fatalln(err)
+	Serverobj := server.New(&Config.SystemConfig, Log)
+	Serverobj.CloseOnProgramEnd()
+	if err := Serverobj.Start(); err != nil {
+		Log.Fatalln(err)
 	}
 
-	if config.UPNPForward {
-		upnpFoward(log)
+	if Config.UPNPForward {
+		upnpFoward()
 	}
 
-	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{}.SetServer(serverobj)))
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds.Kick{}))
 
 	console()
 
-	listenServerEvents(serverobj, log, config)
+	listenServerEvents()
 }
 
-func listenServerEvents(serverobj *server.Server, log *logrus.Logger, config system.CustomConfig) {
+func listenServerEvents() {
 	for {
-		player, err := serverobj.Accept()
+		player, err := Serverobj.Accept()
 		if err != nil {
 			return
 		}
-		if config.Notification.PlayerJoin {
-			pj := "[" + config.SystemConfig.Server.Name + "] Player joined"
+		if Config.Notification.PlayerJoin {
+			pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
 			msg := "Player " + player.Name() + " has joined the server"
-			if config.Notification.AlertSound {
-				_ = beeep.Alert(pj, msg, "")
-			} else {
-				_ = beeep.Notify(pj, msg, "'")
-			}
+			go func(alert bool, pj string, msg string) {
+				if Config.Notification.AlertSound {
+					_ = beeep.Alert(pj, msg, "")
+				} else {
+					_ = beeep.Notify(pj, msg, "'")
+				}
+			}(Config.Notification.AlertSound, pj, msg)
 		}
-		player.Handle(&system.EventListener{Log: log, Player: player})
+		player.Handle(&system.EventListener{Player: player})
 		fmt.Println(err)
 	}
 }
@@ -92,33 +96,33 @@ func readConfig() (system.CustomConfig, error) {
 	return c, nil
 }
 
-func upnpFoward(log *logrus.Logger) {
+func upnpFoward() {
 
-	log.Infoln("Forwarding UPNP...")
+	Log.Infoln("Forwarding UPNP...")
 
 	// connect to router
 	d, err := upnp.Discover()
 	if err != nil {
-		log.Fatal(err)
+		Log.Fatal(err)
 	}
 
 	// discover external IP
 	ip, err := d.ExternalIP()
 	if err != nil {
-		log.Fatal(err)
+		Log.Fatal(err)
 	}
-	log.Infoln("UPNP forward succeeds, your external IP is:", ip)
+	Log.Infoln("UPNP forward succeeds, your external IP is:", ip)
 
 	// forward a port
 	err = d.Forward(19132, "upnp test")
 	if err != nil {
-		log.Fatal(err)
+		Log.Fatal(err)
 	}
 
 	defer func(d *upnp.IGD, port uint16) {
 		err := d.Clear(port)
 		if err != nil {
-			log.Fatal(err)
+			Log.Fatal(err)
 		}
 	}(d, 19132)
 
@@ -127,7 +131,7 @@ func upnpFoward(log *logrus.Logger) {
 func console() {
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		source := &cmds.Console{Server: serverobj}
+		source := &cmds.Console{}
 		fmt.Println("Type help for commands.")
 		// I don't use fmt.Scan() because the fmt package intentionally filters out whitespaces, this is how it is implemented.
 		scanner := bufio.NewScanner(os.Stdin)

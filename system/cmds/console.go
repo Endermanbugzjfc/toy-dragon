@@ -2,14 +2,13 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
+	system "server"
 )
 
 type Console struct {
-	Server *server.Server
 }
 
 func (Console) SendCommandOutput(output *cmd.Output) {
@@ -31,5 +30,5 @@ func (Console) Position() mgl64.Vec3 {
 }
 
 func (c Console) World() *world.World {
-	return c.Server.World()
+	return system.Serverobj.World()
 }

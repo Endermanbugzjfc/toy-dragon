@@ -2,21 +2,14 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/gen2brain/dlgs"
+	system "server"
 )
 
 type Kick struct {
-}
-
-var serverobj *server.Server
-
-func (cmd Kick) SetServer(obj *server.Server) Kick {
-	serverobj = obj
-	return cmd
 }
 
 type SimpleMenuSubmittable struct {
@@ -36,7 +29,7 @@ func (submittable SimpleMenuSubmittable) Submit(submitter form.Submitter, presse
 
 func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 	var name []string
-	plist := serverobj.Players()
+	plist := system.Serverobj.Players()
 	for _, sp := range plist {
 		name = append(name, sp.Name())
 	}
