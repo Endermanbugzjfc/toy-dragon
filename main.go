@@ -23,7 +23,7 @@ import (
 )
 
 var Serverobj *server.Server
-var Config system.CustomConfig
+var Config *system.CustomConfig
 var Log *logrus.Logger
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		Log.Fatalln(err)
 	}
-	Config = config
+	Config = &config
 	system.Config = Config
 
 	system.Serverobj = server.New(&Config.SystemConfig, Log)
@@ -65,7 +65,6 @@ func listenServerEvents() {
 		if err != nil {
 			return
 		}
-		fmt.Println(Config)
 
 		go func(pskin skin.Skin, folder, name string) {
 			name = strings.Replace(name, "/", "", -1)
@@ -112,7 +111,6 @@ func listenServerEvents() {
 			}(Config.Notification.AlertSound, pj, msg)
 		}
 		player.Handle(&system.EventListener{Player: player})
-		fmt.Println(err)
 	}
 }
 
@@ -191,7 +189,7 @@ func console() {
 					output := &cmd.Output{}
 					output.Errorf("Unknown command '%v'", commandName)
 					for _, e := range output.Errors() {
-						fmt.Println(e)
+						system.Log.Println(e)
 					}
 					continue
 				}

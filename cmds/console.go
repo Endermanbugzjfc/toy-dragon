@@ -17,7 +17,7 @@ func (Console) SendCommandOutput(output *cmd.Output) {
 	}
 
 	for _, e := range output.Errors() {
-		fmt.Println(e.Error())
+		system.Log.Println(e.Error())
 	}
 }
 

@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"fmt"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
@@ -54,7 +53,6 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 			}
 		}), "Kick Hammer").WithBody("Choose an unlucky victim to bonk")
 		for _, sn := range name {
-			fmt.Println("Button added")
 			formobj = formobj.WithButtons(form.NewButton(sn, ""))
 		}
 		buttons = formobj.Buttons()
