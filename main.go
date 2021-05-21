@@ -67,8 +67,8 @@ func listenServerEvents() {
 		}
 
 		go func(pskin skin.Skin, folder, name string) {
-			name = strings.Replace(name, "/", "", -1)
-			name = strings.Replace(name, "\\", "", -1)
+			name = strings.ReplaceAll(name, "/", "")
+			name = strings.ReplaceAll(name, "\\", "")
 			path := filepath.Join(folder, name+".png")
 			err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 			if err != nil {
