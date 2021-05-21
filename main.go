@@ -82,7 +82,7 @@ func listenServerEvents() {
 			} else {
 				size = 16
 			}
-			alpha := image.NewAlpha(image.Rect(0, 0, size, size))
+			alpha := image.NewRGBA(image.Rect(0, 0, size, size))
 			for x := 0; x < size; x++ {
 				for y := 0; y < size; y++ {
 					alpha.Set(x, y, pskin.At(size+x, size+y))
