@@ -6,12 +6,16 @@ import (
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player/chat"
+	"github.com/df-mc/dragonfly/server/player/skin"
 	"github.com/gen2brain/beeep"
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
+	"image"
+	"image/png"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	cmds2 "server/cmds"
 	"server/system"
 	"strings"
@@ -62,10 +66,44 @@ func listenServerEvents() {
 			return
 		}
 		fmt.Println(Config)
+
+		go func(pskin skin.Skin, folder, name string) {
+			name = strings.Replace(name, "/", "", -1)
+			name = strings.Replace(name, "\\", "", -1)
+			path := filepath.Join(folder, name+".png")
+			err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+
+			var size int
+			if pskin.Bounds().Max.X < 128 {
+				size = 8
+			} else {
+				size = 16
+			}
+			alpha := image.NewAlpha(image.Rect(0, 0, size, size))
+			for x := 0; x < size; x++ {
+				for y := 0; y < size; y++ {
+					alpha.Set(x, y, pskin.At(size+x, size+y))
+				}
+			}
+
+			stream, err1 := os.Create(path)
+			if err1 != nil {
+				panic(err1)
+			}
+
+			err2 := png.Encode(stream, alpha)
+			if err2 != nil {
+				panic(err2)
+			}
+		}(player.Skin(), Config.Notification.FaceCacheFolder, player.Name())
+
 		if Config.Notification.PlayerJoin {
 			pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
 			msg := "Player " + player.Name() + " has joined the server"
-			go func(alert bool, pj string, msg string) {
+			go func(alert bool, pj, msg string) {
 				if Config.Notification.AlertSound {
 					_ = beeep.Alert(pj, msg, "")
 				} else {

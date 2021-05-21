@@ -10,6 +10,8 @@ type CustomConfig struct {
 		PlayerLeave bool
 		PlayerChat  bool
 		AlertSound  bool
+		//SavePlayerFace bool // TODO
+		FaceCacheFolder string
 	}
 }
 
@@ -21,5 +23,7 @@ func DefaultConfig() CustomConfig {
 	conf.Notification.PlayerJoin = false
 	conf.Notification.PlayerLeave = false
 	conf.Notification.PlayerChat = false
+	//conf.Notification.SavePlayerFace = false
+	conf.Notification.FaceCacheFolder = "Faces"
 	return conf
 }
