@@ -4,6 +4,7 @@ import (
 	"github.com/df-mc/dragonfly/server/event"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/gen2brain/beeep"
+	"server/playersession"
 )
 
 type EventListener struct {
@@ -16,14 +17,15 @@ func (el EventListener) HandleChat(_ *event.Context, msg *string) {
 		return
 	}
 
-	pc := "[" + Config.SystemConfig.Server.Name + "] Message from " + el.Player.Name()
-	go func(alert bool, pc string, msg *string) {
+	go func(alert bool) {
+		pc := OsaEscape("[" + Config.SystemConfig.Server.Name + "] Message from " + el.Player.Name())
+		path := playersession.GetFaceFile(el.Player.Name())
 		if alert {
-			_ = beeep.Alert(pc, *msg, "")
+			_ = beeep.Alert(pc, *msg, path)
 		} else {
-			_ = beeep.Notify(pc, *msg, "")
+			_ = beeep.Notify(pc, *msg, path)
 		}
-	}(Config.Notification.AlertSound, pc, msg)
+	}(Config.Notification.AlertSound)
 }
 
 func (el EventListener) HandleLeave() {
@@ -31,13 +33,14 @@ func (el EventListener) HandleLeave() {
 		return
 	}
 
-	pl := "[" + Config.SystemConfig.Server.Name + "] Player leave "
-	msg := "Player " + el.Player.Name() + " has left the server"
-	go func(alert bool, pl string, msg string) {
+	go func(alert bool) {
+		pl := OsaEscape("[" + Config.SystemConfig.Server.Name + "] Player leave ")
+		msg := "Player " + el.Player.Name() + " has left the server"
+		path := playersession.GetFaceFile(el.Player.Name())
 		if alert {
-			_ = beeep.Alert(pl, msg, "")
+			_ = beeep.Alert(pl, msg, path)
 		} else {
-			_ = beeep.Notify(pl, msg, "")
+			_ = beeep.Notify(pl, msg, path)
 		}
-	}(Config.Notification.AlertSound, pl, msg)
+	}(Config.Notification.AlertSound)
 }

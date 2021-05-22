@@ -45,7 +45,7 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 		formobj := form.NewMenu(submittable.SetCallback(func(submitter form.Submitter, pressed form.Button) {
 			for index, sb := range buttons {
 				if sb == pressed {
-					output.Printf("Kicked player: " + plist[index].Name())
+					output.Printf("Kicked playersession: " + plist[index].Name())
 					sender.SendCommandOutput(output)
 					kick(plist[index])
 					break
@@ -62,7 +62,7 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 
 	go func() {
 		if len(name) < 1 {
-			_, _ = dlgs.Warning(":(", "You have no player on your server, what a poor guy (puk1 gaai1)!)")
+			_, _ = dlgs.Warning(":(", "You have no playersession on your server, what a poor guy (puk1 gaai1)!)")
 			return
 		}
 		result, confirmed, err := dlgs.List("Kick Hammer", "Choose an unlucky victim to bonk", name)
@@ -72,7 +72,7 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 		if confirmed {
 			for _, sp := range plist {
 				if sp.Name() == result {
-					output.Printf("Kicked player: " + result)
+					output.Printf("Kicked playersession: " + result)
 					sender.SendCommandOutput(output)
 					kick(sp)
 					break

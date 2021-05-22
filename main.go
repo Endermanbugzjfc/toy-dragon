@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	cmds2 "server/cmds"
+	"server/playersession"
 	"server/system"
 	"strings"
 	"time"
@@ -67,9 +68,7 @@ func listenServerEvents() {
 		}
 
 		go func(pskin skin.Skin, folder, name string) {
-			name = strings.ReplaceAll(name, "/", "")
-			name = strings.ReplaceAll(name, "\\", "")
-			path := filepath.Join(folder, name+".png")
+			path := playersession.GetFaceFile(name)
 
 			if _, err3 := os.Stat(path); os.IsNotExist(err3) {
 				err4 := os.MkdirAll(filepath.Dir(path), os.ModePerm)
