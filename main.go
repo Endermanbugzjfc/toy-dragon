@@ -70,46 +70,48 @@ func listenServerEvents() {
 			name = strings.Replace(name, "/", "", -1)
 			name = strings.Replace(name, "\\", "", -1)
 			path := filepath.Join(folder, name+".png")
-			err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
-			if err != nil {
-				panic(err)
-			}
 
-			var size int
-			if pskin.Bounds().Max.X < 128 {
-				size = 8
-			} else {
-				size = 16
-			}
-			alpha := image.NewRGBA(image.Rect(0, 0, size, size))
-			for x := 0; x < size; x++ {
-				for y := 0; y < size; y++ {
-					alpha.Set(x, y, pskin.At(size+x, size+y))
+			if _, err3 := os.Stat(path); os.IsNotExist(err3) {
+				err4 := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+				if err4 != nil {
+					panic(err)
+				}
+
+				var size int
+				if pskin.Bounds().Max.X < 128 {
+					size = 8
+				} else {
+					size = 16
+				}
+				alpha := image.NewRGBA(image.Rect(0, 0, size, size))
+				for x := 0; x < size; x++ {
+					for y := 0; y < size; y++ {
+						alpha.Set(x, y, pskin.At(size+x, size+y))
+					}
+				}
+
+				stream, err1 := os.Create(path)
+				if err1 != nil {
+					panic(err1)
+				}
+
+				err2 := png.Encode(stream, alpha)
+				_ = stream.Close()
+				if err2 != nil {
+					panic(err2)
 				}
 			}
 
-			stream, err1 := os.Create(path)
-			if err1 != nil {
-				panic(err1)
-			}
-
-			err2 := png.Encode(stream, alpha)
-			if err2 != nil {
-				panic(err2)
+			if Config.Notification.PlayerJoin {
+				pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
+				msg := "Player " + player.Name() + " has joined the server"
+				if Config.Notification.AlertSound {
+					_ = beeep.Alert(pj, msg, path)
+				} else {
+					_ = beeep.Notify(pj, msg, path)
+				}
 			}
 		}(player.Skin(), Config.Notification.FaceCacheFolder, player.Name())
-
-		if Config.Notification.PlayerJoin {
-			pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
-			msg := "Player " + player.Name() + " has joined the server"
-			go func(alert bool, pj, msg string) {
-				if Config.Notification.AlertSound {
-					_ = beeep.Alert(pj, msg, "")
-				} else {
-					_ = beeep.Notify(pj, msg, "'")
-				}
-			}(Config.Notification.AlertSound, pj, msg)
-		}
 		player.Handle(&system.EventListener{Player: player})
 	}
 }
