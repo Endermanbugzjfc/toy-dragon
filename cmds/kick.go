@@ -30,7 +30,7 @@ func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 	var name []string
 	plist := system.Serverobj.Players()
 	for _, sp := range plist {
-		name = append(name, sp.Name())
+		name = append(name, system.OsaEscape(sp.Name()))
 	}
 
 	if _, ok := sender.(*Console); !ok {

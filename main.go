@@ -103,8 +103,8 @@ func listenServerEvents() {
 			}
 
 			if Config.Notification.PlayerJoin {
-				pj := "[" + Config.SystemConfig.Server.Name + "] Player joined"
-				msg := "Player " + player.Name() + " has joined the server"
+				pj := system.OsaEscape("[" + Config.SystemConfig.Server.Name + "] Player joined")
+				msg := system.OsaEscape("Player " + player.Name() + " has joined the server")
 				if Config.Notification.AlertSound {
 					_ = beeep.Alert(pj, msg, path)
 				} else {
