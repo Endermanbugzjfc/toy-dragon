@@ -5,7 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/world"
 	"github.com/go-gl/mathgl/mgl64"
-	"server/system"
+	"server/utils"
 )
 
 type Console struct {
@@ -17,7 +17,7 @@ func (Console) SendCommandOutput(output *cmd.Output) {
 	}
 
 	for _, e := range output.Errors() {
-		system.Log.Println(e.Error())
+		utils.Log.Println(e.Error())
 	}
 }
 
@@ -30,5 +30,5 @@ func (Console) Position() mgl64.Vec3 {
 }
 
 func (c Console) World() *world.World {
-	return system.Serverobj.World()
+	return utils.Serverobj.World()
 }

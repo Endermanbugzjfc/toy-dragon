@@ -1,4 +1,4 @@
-package system
+package utils
 
 import (
 	"github.com/df-mc/dragonfly/server"

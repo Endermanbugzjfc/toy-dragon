@@ -5,7 +5,7 @@ import (
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/df-mc/dragonfly/server/player/form"
 	"github.com/gen2brain/dlgs"
-	"server/system"
+	"server/utils"
 )
 
 type Kick struct {
@@ -28,9 +28,9 @@ func (submittable SimpleMenuSubmittable) Submit(submitter form.Submitter, presse
 
 func (cmd Kick) Run(sender cmd.Source, output *cmd.Output) {
 	var name []string
-	plist := system.Serverobj.Players()
+	plist := utils.Serverobj.Players()
 	for _, sp := range plist {
-		name = append(name, system.OsaEscape(sp.Name()))
+		name = append(name, utils.OsaEscape(sp.Name()))
 	}
 
 	if _, ok := sender.(*Console); !ok {

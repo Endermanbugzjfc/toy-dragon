@@ -19,17 +19,18 @@ import (
 	cmds2 "server/cmds"
 	"server/playersession"
 	"server/system"
+	"server/utils"
 	"strings"
 	"time"
 )
 
 var Serverobj *server.Server
-var Config *system.CustomConfig
+var Config *utils.CustomConfig
 var Log *logrus.Logger
 
 func main() {
-	system.Log = logrus.New()
-	Log = system.Log
+	utils.Log = logrus.New()
+	Log = utils.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	Log.Level = logrus.DebugLevel
 
@@ -40,10 +41,10 @@ func main() {
 		Log.Fatalln(err)
 	}
 	Config = &config
-	system.Config = Config
+	utils.Config = Config
 
-	system.Serverobj = server.New(&Config.SystemConfig, Log)
-	Serverobj = system.Serverobj
+	utils.Serverobj = server.New(&Config.SystemConfig, Log)
+	Serverobj = utils.Serverobj
 	Serverobj.CloseOnProgramEnd()
 	if err := Serverobj.Start(); err != nil {
 		Log.Fatalln(err)
@@ -102,8 +103,8 @@ func listenServerEvents() {
 			}
 
 			if Config.Notification.PlayerJoin {
-				pj := system.OsaEscape("[" + Config.SystemConfig.Server.Name + "] Player joined")
-				msg := system.OsaEscape("Player " + player.Name() + " has joined the server")
+				pj := utils.OsaEscape("[" + Config.SystemConfig.Server.Name + "] Player joined")
+				msg := utils.OsaEscape("Player " + player.Name() + " has joined the server")
 				if Config.Notification.AlertSound {
 					_ = beeep.Alert(pj, msg, path)
 				} else {
@@ -116,8 +117,8 @@ func listenServerEvents() {
 }
 
 // readConfig reads the configuration from the config.toml file, or creates the file if it does not yet exist.
-func readConfig() (system.CustomConfig, error) {
-	c := system.DefaultConfig()
+func readConfig() (utils.CustomConfig, error) {
+	c := utils.DefaultConfig()
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(c)
 		if err != nil {
@@ -190,7 +191,7 @@ func console() {
 					output := &cmd.Output{}
 					output.Errorf("Unknown command '%v'", commandName)
 					for _, e := range output.Errors() {
-						system.Log.Println(e)
+						utils.Log.Println(e)
 					}
 					continue
 				}
