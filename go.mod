@@ -3,6 +3,7 @@ module server
 go 1.13
 
 require (
+	github.com/andlabs/ui v0.0.0-20200610043537-70a69d6ae31e // indirect
 	github.com/df-mc/dragonfly v0.0.5-0.20210515195603-0dd2d00cc3b9
 	github.com/gen2brain/beeep v0.0.0-20200526185328-e9c15c258e28 // indirect
 	github.com/gen2brain/dlgs v0.0.0-20210406143744-f512297a108e // indirect

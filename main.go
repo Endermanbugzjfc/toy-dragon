@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/andlabs/ui"
 	"github.com/df-mc/dragonfly/server"
 	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player/chat"
@@ -16,7 +17,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	cmds2 "server/cmds"
+	servercmds "server/cmds"
 	"server/playersession"
 	"server/system"
 	"server/utils"
@@ -27,8 +28,10 @@ import (
 var Serverobj *server.Server
 var Config *utils.CustomConfig
 var Log *logrus.Logger
+var ServerStarted bool
 
 func main() {
+	ServerStarted = false
 	utils.Log = logrus.New()
 	Log = utils.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
@@ -43,6 +46,54 @@ func main() {
 	Config = &config
 	utils.Config = Config
 
+	_ = ui.Main(func() {
+
+		statuslabel := ui.NewLabel("Status: Offline")
+
+		startbutton := ui.NewButton("Start server")
+		startbutton.OnClicked(func(button *ui.Button) {
+			if !ServerStarted {
+				ServerStarted = true
+				statuslabel.SetText("Status: Running")
+				startbutton.SetText("Shutdown server")
+				go startServer()
+			} else {
+				ServerStarted = false
+				statuslabel.SetText("Status: Offline")
+				startbutton.SetText("Start server")
+				if Serverobj != nil {
+					_ = Serverobj.Close()
+				}
+			}
+		})
+
+		container := ui.NewVerticalBox()
+		container.Append(statuslabel, false)
+		container.Append(startbutton, false)
+
+		panel := ui.NewWindow("["+Config.SystemConfig.Server.Name+"] Control Panel", 640, 480, true)
+		panel.SetChild(container)
+		ui.OnShouldQuit(func() bool {
+			panel.Destroy()
+			return true
+		})
+		panel.OnClosing(func(*ui.Window) bool {
+			if Serverobj != nil {
+				ServerStarted = false
+				statuslabel.SetText("Status: Offline")
+				startbutton.Disable()
+				_ = Serverobj.Close()
+				time.Sleep(time.Second * 2)
+			}
+			ui.Quit()
+			return true
+		})
+		panel.Show()
+	})
+	return
+}
+
+func startServer() {
 	utils.Serverobj = server.New(&Config.SystemConfig, Log)
 	Serverobj = utils.Serverobj
 	Serverobj.CloseOnProgramEnd()
@@ -54,14 +105,10 @@ func main() {
 		upnpFoward()
 	}
 
-	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, cmds2.Kick{}))
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, servercmds.Kick{}))
 
 	console()
 
-	listenServerEvents()
-}
-
-func listenServerEvents() {
 	for {
 		player, err := Serverobj.Accept()
 		if err != nil {
@@ -140,7 +187,6 @@ func readConfig() (utils.CustomConfig, error) {
 }
 
 func upnpFoward() {
-
 	Log.Infoln("Forwarding UPNP...")
 
 	// connect to router
@@ -174,7 +220,7 @@ func upnpFoward() {
 func console() {
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		source := &cmds2.Console{}
+		source := &servercmds.Console{}
 		fmt.Println("Type help for commands.")
 		// I don't use fmt.Scan() because the fmt package intentionally filters out whitespaces, this is how it is implemented.
 		scanner := bufio.NewScanner(os.Stdin)
