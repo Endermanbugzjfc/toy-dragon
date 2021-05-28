@@ -2,7 +2,7 @@ package utils
 
 import "strings"
 
-func OsaEscape(string string) string {
-	string = strings.ReplaceAll(string, "\"", "")
-	return string
+func OsaEscape(input string) string {
+	input = strings.ReplaceAll(input, "\"", "")
+	return input
 }
