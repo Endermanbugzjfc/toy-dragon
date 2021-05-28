@@ -16,9 +16,10 @@ type CustomConfig struct {
 		JoinMessage     string
 		QuitMessage     string
 		Notification    struct {
-			NotifyJoin bool
-			NotifyChat bool
-			NotifyQuit bool
+			PlayerJoin bool
+			PlayerChat bool
+			PlayerQuit bool
+			AlertSound bool
 		}
 	}
 	World struct {
@@ -54,9 +55,10 @@ func DefaultConfig() CustomConfig {
 	conf := CustomConfig{}
 	conf.FromServerConfig(server.DefaultConfig())
 	conf.Network.UPNPForward = false
-	conf.Server.Notification.NotifyJoin = false
-	conf.Server.Notification.NotifyChat = false
-	conf.Server.Notification.NotifyQuit = false
+	conf.Server.Notification.PlayerJoin = false
+	conf.Server.Notification.PlayerChat = false
+	conf.Server.Notification.PlayerQuit = false
+	conf.Server.Notification.AlertSound = false
 	conf.Player.FaceCacheFolder = "faces"
 	return conf
 }

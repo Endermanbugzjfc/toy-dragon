@@ -71,7 +71,7 @@ func main() {
 		container.Append(statuslabel, false)
 		container.Append(startbutton, false)
 
-		panel := ui.NewWindow("["+Config.SystemConfig.Server.Name+"] Control Panel", 640, 480, true)
+		panel := ui.NewWindow("["+Config.Server.Name+"] Control Panel", 640, 480, true)
 		panel.SetChild(container)
 		ui.OnShouldQuit(func() bool {
 			panel.Destroy()
@@ -94,14 +94,15 @@ func main() {
 }
 
 func startServer() {
-	utils.Serverobj = server.New(&Config.SystemConfig, Log)
+	serverconf := Config.ToServerConfig()
+	utils.Serverobj = server.New(&serverconf, Log)
 	Serverobj = utils.Serverobj
 	Serverobj.CloseOnProgramEnd()
 	if err := Serverobj.Start(); err != nil {
 		Log.Fatalln(err)
 	}
 
-	if Config.UPNPForward {
+	if Config.Network.UPNPForward {
 		upnpFoward()
 	}
 
@@ -149,16 +150,16 @@ func startServer() {
 				}
 			}
 
-			if Config.Notification.PlayerJoin {
-				pj := utils.OsaEscape("[" + Config.SystemConfig.Server.Name + "] Player joined")
+			if Config.Server.Notification.PlayerJoin {
+				pj := utils.OsaEscape("[" + Config.Server.Name + "] Player joined")
 				msg := utils.OsaEscape("Player " + player.Name() + " has joined the server")
-				if Config.Notification.AlertSound {
+				if Config.Server.Notification.AlertSound {
 					_ = beeep.Alert(pj, msg, path)
 				} else {
 					_ = beeep.Notify(pj, msg, path)
 				}
 			}
-		}(player.Skin(), Config.Notification.FaceCacheFolder, player.Name())
+		}(player.Skin(), Config.Player.FaceCacheFolder, player.Name())
 		player.Handle(&system.EventListener{Player: player})
 	}
 }

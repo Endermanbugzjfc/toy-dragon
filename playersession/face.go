@@ -11,5 +11,5 @@ var config utils.CustomConfig
 func GetFaceFile(name string) string {
 	name = strings.ReplaceAll(name, "/", "")
 	name = strings.ReplaceAll(name, "\\", "")
-	return filepath.Join(config.Notification.FaceCacheFolder, name+".png")
+	return filepath.Join(config.Player.FaceCacheFolder, name+".png")
 }
