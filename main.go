@@ -46,6 +46,12 @@ func main() {
 	Config = &config
 	utils.Config = Config
 
+	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
+
+	for cmdoption := range cmd.Commands() {
+		system.Cmdtrigger = append(system.Cmdtrigger, cmdoption)
+	}
+
 	go func() {
 		for {
 			system.Startlock = make(chan bool)
@@ -82,8 +88,6 @@ func startServer() {
 	if Config.Network.UPNPForward {
 		upnpFoward()
 	}
-
-	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, servercmds.Kick{}))
 
 	console()
 

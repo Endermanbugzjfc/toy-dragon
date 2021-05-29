@@ -3,6 +3,7 @@ package system
 import (
 	"github.com/andlabs/ui"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/gen2brain/dlgs"
 	"github.com/sirupsen/logrus"
 	servercmds "server/cmds"
 	"server/utils"
@@ -22,6 +23,7 @@ var (
 	serverstarted     bool
 	logqueue          string
 	consoletickerstop chan struct{}
+	Cmdtrigger        []string
 )
 
 const (
@@ -72,9 +74,19 @@ func ControlPanel() {
 	serverstarted = false
 
 	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
-	panel.OnClosing(func(*ui.Window) bool {
-		ui.Quit()
-		return true
+	panel.OnClosing(func(_ *ui.Window) bool {
+		var v = true
+		var err error
+		if serverstarted {
+			v, err = dlgs.Question("["+utils.Config.Server.Name+"]", "Server is still running! Cosing the control panel will shut the server down, are you sure to continue?", true)
+		}
+		if err != nil {
+			v = true
+		}
+		if v {
+			ui.Quit()
+		}
+		return v
 	})
 	ui.OnShouldQuit(func() bool {
 		close(consoletickerstop)
@@ -158,7 +170,11 @@ func panelOverview() {
 	cmdbox.SetPadded(true)
 	vbox.Append(cmdbox, false)
 
-	cmdentry := ui.NewEntry()
+	cmdentry := ui.NewEditableCombobox()
+	for _, cmdoption := range Cmdtrigger {
+		cmdentry.Append(cmdoption)
+	}
+
 	cmdbox.Append(cmdentry, true)
 
 	sendbutton := ui.NewButton("Send")
@@ -185,7 +201,7 @@ func panelOverview() {
 
 		command.Execute(strings.TrimPrefix(strings.TrimPrefix(commandString, commandName), " "), source)
 	})
-	cmdentry.OnChanged(func(entry *ui.Entry) {
+	cmdentry.OnChanged(func(entry *ui.EditableCombobox) {
 		text := entry.Text()
 		if text == "" {
 			sendbutton.Disable()
