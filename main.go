@@ -36,6 +36,7 @@ func main() {
 	Log = utils.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	Log.Level = logrus.DebugLevel
+	Log.AddHook(system.CustomLoggerHook{})
 
 	chat.Global.Subscribe(chat.StdoutSubscriber{})
 

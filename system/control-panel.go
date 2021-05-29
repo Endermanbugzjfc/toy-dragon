@@ -3,6 +3,7 @@ package system
 import (
 	"github.com/andlabs/ui"
 	"github.com/df-mc/dragonfly/server/cmd"
+	"github.com/sirupsen/logrus"
 	servercmds "server/cmds"
 	"server/utils"
 	"strings"
@@ -11,12 +12,32 @@ import (
 var overview *ui.Box
 var statuslabel *ui.Label
 var console *ui.MultilineEntry
+var cmdentry *ui.Entry
 
 const (
 	StatOffline  = 0
 	StatStarting = 1
 	StatRunning  = 2
 )
+
+type CustomLoggerHook struct {
+	logrus.Hook
+}
+
+func (CustomLoggerHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
+	text, err := entry.String()
+	if err != nil {
+		return nil
+	}
+	logs := console.Text()
+	logs = logs + "\n" + text
+	console.SetText(logs) // TODO: Fix color bytes display as confusing characters on console box
+	return nil
+}
 
 func ControlPanel() {
 	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
@@ -59,7 +80,17 @@ func panelOverview() {
 	vbox := ui.NewVerticalBox()
 	vbox.SetPadded(true)
 
-	vbox.Append(ui.NewLabel("Console"), false)
+	consoletoolbar := ui.NewHorizontalBox()
+	consoletoolbar.SetPadded(true)
+	consoletoolbar.Append(ui.NewLabel("Console"), false)
+
+	clearbutton := ui.NewButton("Clear console")
+	clearbutton.OnClicked(func(clearbutton *ui.Button) {
+		console.SetText("")
+	})
+	consoletoolbar.Append(clearbutton, false)
+
+	vbox.Append(consoletoolbar, false)
 
 	console = ui.NewMultilineEntry()
 	console.SetReadOnly(true)
@@ -70,13 +101,14 @@ func panelOverview() {
 	cmdbox.SetPadded(true)
 	vbox.Append(cmdbox, false)
 
-	cmdentry := ui.NewEntry()
+	cmdentry = ui.NewEntry()
 	cmdbox.Append(cmdentry, true)
 
 	sendbutton := ui.NewButton("Send")
 	source := &servercmds.Console{}
 	sendbutton.OnClicked(func(sendbutton *ui.Button) {
 		commandString := cmdentry.Text()
+		cmdentry.SetText("")
 		if commandString == "" {
 			return
 		}
@@ -93,7 +125,6 @@ func panelOverview() {
 		}
 
 		command.Execute(strings.TrimPrefix(strings.TrimPrefix(commandString, commandName), " "), source)
-		cmdentry.SetText("")
 	})
 	cmdbox.Append(sendbutton, false)
 
