@@ -6,16 +6,23 @@ import (
 	"github.com/sirupsen/logrus"
 	servercmds "server/cmds"
 	"server/utils"
+	"strconv"
 	"strings"
+	"time"
 )
 
-var overview *ui.Box
-var statuslabel *ui.Label
-var console *ui.MultilineEntry
-var powerbutton *ui.Button
-var clearbutton *ui.Button
-var Startlock chan bool
-var serverstarted bool
+var (
+	overview          *ui.Box
+	statuslabel       *ui.Label
+	playerlabel       *ui.Label
+	console           *ui.MultilineEntry
+	powerbutton       *ui.Button
+	clearbutton       *ui.Button
+	Startlock         chan bool
+	serverstarted     bool
+	logqueue          string
+	consoletickerstop chan struct{}
+)
 
 const (
 	StatOffline  = 0
@@ -36,9 +43,7 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 	if err != nil {
 		return nil
 	}
-	logs := console.Text()
-	logs = logs + text
-	console.SetText(logs) // TODO: Fix color bytes display as confusing characters on console box
+	logqueue = logqueue + text // TODO: Fix color bytes display as confusing characters on console box
 	if !clearbutton.Enabled() {
 		clearbutton.Enable()
 	}
@@ -46,6 +51,24 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 }
 
 func ControlPanel() {
+	ticker := time.NewTicker(1 * time.Second)
+	consoletickerstop = make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if logqueue != "" {
+					console.SetText(console.Text() + logqueue)
+					logqueue = ""
+				}
+
+			case <-consoletickerstop:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
 	serverstarted = false
 
 	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
@@ -54,6 +77,7 @@ func ControlPanel() {
 		return true
 	})
 	ui.OnShouldQuit(func() bool {
+		close(consoletickerstop)
 		panel.Destroy()
 		return true
 	})
@@ -72,6 +96,11 @@ func ControlPanel() {
 
 	statbar.SetPadded(true)
 	statbar.Append(statuslabel, false)
+
+	playerlabel = ui.NewLabel("")
+	PlayerLabelReset()
+	statbar.Append(playerlabel, false)
+
 	vbox.Append(statbar, false)
 
 	panelOverview()
@@ -188,6 +217,20 @@ func ServerStatUpdate(stat int8) {
 	case StatRunning:
 		statuslabel.SetText("Status: Running")
 	}
+}
+
+func PlayerCountUpdate() {
+	count := utils.Serverobj.PlayerCount()
+	maxplayer := utils.Serverobj.MaxPlayerCount()
+	if maxplayer > 0 {
+		playerlabel.SetText("Player: " + strconv.Itoa(count) + " / " + strconv.Itoa(maxplayer))
+	} else {
+		playerlabel.SetText("Player: " + strconv.Itoa(count))
+	}
+}
+
+func PlayerLabelReset() {
+	playerlabel.SetText("Player: --")
 }
 
 func ClearCPConsole() {

@@ -30,13 +30,14 @@ var Config *utils.CustomConfig
 var Log *logrus.Logger
 
 func main() {
+
+	chat.Global.Subscribe(chat.StdoutSubscriber{})
+
 	utils.Log = logrus.New()
 	Log = utils.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	Log.Level = logrus.DebugLevel
 	Log.AddHook(system.CustomLoggerHook{})
-
-	chat.Global.Subscribe(chat.StdoutSubscriber{})
 
 	config, err := readConfig()
 	if err != nil {
@@ -50,7 +51,8 @@ func main() {
 			system.Startlock = make(chan bool)
 			<-system.Startlock
 			startServer()
-			fmt.Println("Server closed")
+			system.PlayerLabelReset()
+			system.ServerStatUpdate(system.StatOffline)
 		}
 	}()
 
@@ -60,6 +62,14 @@ func main() {
 func startServer() {
 	system.ClearCPConsole()
 	system.ServerStatUpdate(system.StatRunning)
+
+	config, err := readConfig()
+	if err != nil {
+		Log.Fatalln(err)
+	}
+	Config = &config
+	utils.Config = Config
+
 	serverconf := Config.ToServerConfig()
 	utils.Serverobj = server.New(&serverconf, Log)
 	Serverobj = utils.Serverobj
@@ -78,9 +88,11 @@ func startServer() {
 	console()
 
 	system.ServerStatUpdate(system.StatRunning)
+	system.PlayerCountUpdate()
 
 	for {
 		player, err := Serverobj.Accept()
+		go system.PlayerCountUpdate()
 		if err != nil {
 			return
 		}

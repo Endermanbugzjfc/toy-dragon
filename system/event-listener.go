@@ -35,6 +35,7 @@ func (el EventListener) HandleLeave() {
 	}
 
 	go func(alert bool) {
+		PlayerCountUpdate()
 		pl := utils.OsaEscape("[" + utils.Config.Server.Name + "] Player leave ")
 		msg := "Player " + el.Player.Name() + " has left the server"
 		path := playersession.GetFaceFile(el.Player.Name())
