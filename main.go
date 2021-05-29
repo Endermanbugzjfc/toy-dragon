@@ -28,10 +28,8 @@ import (
 var Serverobj *server.Server
 var Config *utils.CustomConfig
 var Log *logrus.Logger
-var ServerStarted bool
 
 func main() {
-	ServerStarted = false
 	utils.Log = logrus.New()
 	Log = utils.Log
 	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
@@ -60,6 +58,8 @@ func main() {
 }
 
 func startServer() {
+	system.ClearCPConsole()
+	system.ServerStatUpdate(system.StatRunning)
 	serverconf := Config.ToServerConfig()
 	utils.Serverobj = server.New(&serverconf, Log)
 	Serverobj = utils.Serverobj
@@ -76,6 +76,8 @@ func startServer() {
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{}, servercmds.Kick{}))
 
 	console()
+
+	system.ServerStatUpdate(system.StatRunning)
 
 	for {
 		player, err := Serverobj.Accept()

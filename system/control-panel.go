@@ -37,9 +37,11 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 		return nil
 	}
 	logs := console.Text()
-	logs = logs + "\n" + text
+	logs = logs + text
 	console.SetText(logs) // TODO: Fix color bytes display as confusing characters on console box
-	clearbutton.Enable()
+	if !clearbutton.Enabled() {
+		clearbutton.Enable()
+	}
 	return nil
 }
 
@@ -112,8 +114,7 @@ func panelOverview() {
 	clearbutton = ui.NewButton("Clear console")
 	clearbutton.Disable()
 	clearbutton.OnClicked(func(clearbutton *ui.Button) {
-		console.SetText("")
-		clearbutton.Disable()
+		ClearCPConsole()
 	})
 	consoletoolbar.Append(clearbutton, false)
 
@@ -187,4 +188,9 @@ func ServerStatUpdate(stat int8) {
 	case StatRunning:
 		statuslabel.SetText("Status: Running")
 	}
+}
+
+func ClearCPConsole() {
+	console.SetText("")
+	clearbutton.Disable()
 }
