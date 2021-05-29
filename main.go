@@ -46,50 +46,7 @@ func main() {
 	Config = &config
 	utils.Config = Config
 
-	_ = ui.Main(func() {
-
-		statuslabel := ui.NewLabel("Status: Offline")
-
-		startbutton := ui.NewButton("Start server")
-		startbutton.OnClicked(func(button *ui.Button) {
-			if !ServerStarted {
-				ServerStarted = true
-				statuslabel.SetText("Status: Running")
-				startbutton.SetText("Shutdown server")
-				go startServer()
-			} else {
-				ServerStarted = false
-				statuslabel.SetText("Status: Offline")
-				startbutton.SetText("Start server")
-				if Serverobj != nil {
-					_ = Serverobj.Close()
-				}
-			}
-		})
-
-		container := ui.NewVerticalBox()
-		container.Append(statuslabel, false)
-		container.Append(startbutton, false)
-
-		panel := ui.NewWindow("["+Config.Server.Name+"] Control Panel", 640, 480, true)
-		panel.SetChild(container)
-		ui.OnShouldQuit(func() bool {
-			panel.Destroy()
-			return true
-		})
-		panel.OnClosing(func(*ui.Window) bool {
-			if Serverobj != nil {
-				ServerStarted = false
-				statuslabel.SetText("Status: Offline")
-				startbutton.Disable()
-				_ = Serverobj.Close()
-				time.Sleep(time.Second * 2)
-			}
-			ui.Quit()
-			return true
-		})
-		panel.Show()
-	})
+	_ = ui.Main(system.ControlPanel)
 	return
 }
 
@@ -98,6 +55,7 @@ func startServer() {
 	utils.Serverobj = server.New(&serverconf, Log)
 	Serverobj = utils.Serverobj
 	Serverobj.CloseOnProgramEnd()
+
 	if err := Serverobj.Start(); err != nil {
 		Log.Fatalln(err)
 	}
