@@ -12,7 +12,10 @@ import (
 var overview *ui.Box
 var statuslabel *ui.Label
 var console *ui.MultilineEntry
-var cmdentry *ui.Entry
+var powerbutton *ui.Button
+var clearbutton *ui.Button
+var Startlock chan bool
+var serverstarted bool
 
 const (
 	StatOffline  = 0
@@ -36,10 +39,13 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 	logs := console.Text()
 	logs = logs + "\n" + text
 	console.SetText(logs) // TODO: Fix color bytes display as confusing characters on console box
+	clearbutton.Enable()
 	return nil
 }
 
 func ControlPanel() {
+	serverstarted = false
+
 	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
 	panel.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
@@ -80,13 +86,34 @@ func panelOverview() {
 	vbox := ui.NewVerticalBox()
 	vbox.SetPadded(true)
 
+	controlbar := ui.NewHorizontalBox()
+	controlbar.SetPadded(true)
+	vbox.Append(controlbar, false)
+
+	powerbutton = ui.NewButton("Start server")
+	controlbar.Append(powerbutton, true)
+
+	powerbutton.OnClicked(func(powerbutton *ui.Button) {
+		if !serverstarted {
+			serverstarted = true
+			close(Startlock)
+			powerbutton.SetText("Stop server")
+		} else {
+			serverstarted = false
+			_ = utils.Serverobj.Close()
+			powerbutton.SetText("Start server")
+		}
+	})
+
 	consoletoolbar := ui.NewHorizontalBox()
 	consoletoolbar.SetPadded(true)
 	consoletoolbar.Append(ui.NewLabel("Console"), false)
 
-	clearbutton := ui.NewButton("Clear console")
+	clearbutton = ui.NewButton("Clear console")
+	clearbutton.Disable()
 	clearbutton.OnClicked(func(clearbutton *ui.Button) {
 		console.SetText("")
+		clearbutton.Disable()
 	})
 	consoletoolbar.Append(clearbutton, false)
 
@@ -101,14 +128,16 @@ func panelOverview() {
 	cmdbox.SetPadded(true)
 	vbox.Append(cmdbox, false)
 
-	cmdentry = ui.NewEntry()
+	cmdentry := ui.NewEntry()
 	cmdbox.Append(cmdentry, true)
 
 	sendbutton := ui.NewButton("Send")
+	sendbutton.Disable()
 	source := &servercmds.Console{}
 	sendbutton.OnClicked(func(sendbutton *ui.Button) {
 		commandString := cmdentry.Text()
 		cmdentry.SetText("")
+		sendbutton.Disable()
 		if commandString == "" {
 			return
 		}
@@ -125,6 +154,14 @@ func panelOverview() {
 		}
 
 		command.Execute(strings.TrimPrefix(strings.TrimPrefix(commandString, commandName), " "), source)
+	})
+	cmdentry.OnChanged(func(entry *ui.Entry) {
+		text := entry.Text()
+		if text == "" {
+			sendbutton.Disable()
+			return
+		}
+		sendbutton.Enable()
 	})
 	cmdbox.Append(sendbutton, false)
 

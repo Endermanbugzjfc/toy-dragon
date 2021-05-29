@@ -47,8 +47,16 @@ func main() {
 	Config = &config
 	utils.Config = Config
 
+	go func() {
+		for {
+			system.Startlock = make(chan bool)
+			<-system.Startlock
+			startServer()
+			fmt.Println("Server closed")
+		}
+	}()
+
 	_ = ui.Main(system.ControlPanel)
-	return
 }
 
 func startServer() {
