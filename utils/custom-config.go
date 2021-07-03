@@ -30,6 +30,7 @@ type CustomConfig struct {
 	}
 	Player struct {
 		FaceCacheFolder string
+		SaveData        bool
 	}
 }
 
@@ -38,14 +39,14 @@ func (conf CustomConfig) ToServerConfig() server.Config {
 
 	sc.Network.Address = conf.Network.Address
 	sc.Server.Name = conf.Server.Name
-	sc.Server.MaximumPlayers = conf.Server.MaximumPlayers
+	sc.Players.MaxCount = conf.Server.MaximumPlayers
 	sc.Server.ShutdownMessage = conf.Server.ShutdownMessage
 	sc.Server.AuthEnabled = conf.Server.AuthEnabled
 	sc.Server.JoinMessage = conf.Server.JoinMessage
 	sc.Server.QuitMessage = conf.Server.QuitMessage
 	sc.World.Name = conf.World.Name
 	sc.World.Folder = conf.World.Folder
-	sc.World.MaximumChunkRadius = conf.World.MaximumChunkRadius
+	sc.Players.MaximumChunkRadius = conf.World.MaximumChunkRadius
 	sc.World.SimulationDistance = conf.World.SimulationDistance
 
 	return sc
@@ -66,14 +67,14 @@ func DefaultConfig() CustomConfig {
 func (conf *CustomConfig) FromServerConfig(sc server.Config) *CustomConfig {
 	conf.Network.Address = sc.Network.Address
 	conf.Server.Name = sc.Server.Name
-	conf.Server.MaximumPlayers = sc.Server.MaximumPlayers
+	conf.Server.MaximumPlayers = sc.Players.MaxCount
 	conf.Server.ShutdownMessage = sc.Server.ShutdownMessage
 	conf.Server.AuthEnabled = sc.Server.AuthEnabled
 	conf.Server.JoinMessage = sc.Server.JoinMessage
 	conf.Server.QuitMessage = sc.Server.QuitMessage
 	conf.World.Name = sc.World.Name
 	conf.World.Folder = sc.World.Folder
-	conf.World.MaximumChunkRadius = sc.World.MaximumChunkRadius
+	conf.World.MaximumChunkRadius = sc.Players.MaximumChunkRadius
 	conf.World.SimulationDistance = sc.World.SimulationDistance
 
 	return conf
