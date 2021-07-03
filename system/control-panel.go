@@ -9,7 +9,7 @@ import (
 	"server/utils"
 	"strconv"
 	"strings"
-	"time"
+	"sync"
 )
 
 var (
@@ -21,9 +21,10 @@ var (
 	clearbutton       *ui.Button
 	Startlock         chan bool
 	serverstarted     bool
-	logqueue          string
 	consoletickerstop chan struct{}
 	Cmdtrigger        []string
+
+	logMutex sync.Mutex
 )
 
 const (
@@ -45,32 +46,16 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 	if err != nil {
 		return nil
 	}
-	logqueue = logqueue + text // TODO: Fix color bytes display as confusing characters on console box
+	logMutex.Lock()
+	console.SetText(console.Text() + text)
 	if !clearbutton.Enabled() {
 		clearbutton.Enable()
 	}
+	logMutex.Unlock()
 	return nil
 }
 
 func ControlPanel() {
-	ticker := time.NewTicker(1 * time.Second)
-	consoletickerstop = make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				if logqueue != "" {
-					console.SetText(console.Text() + logqueue)
-					logqueue = ""
-				}
-
-			case <-consoletickerstop:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-
 	serverstarted = false
 
 	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
