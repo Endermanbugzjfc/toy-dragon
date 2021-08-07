@@ -8,7 +8,7 @@ import (
 var playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
 
 func ControlPanel() {
-	cp := ui.NewWindow("【DragonFly CP】翡翠出品。正宗廢品", 640, 480, true)
+	cp := ui.NewWindow("[DragonFly CP] 翡翠出品。正宗廢品", 640, 480, true)
 	cp.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
 		return true
