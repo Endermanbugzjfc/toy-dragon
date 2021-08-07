@@ -3,6 +3,7 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"server/utils"
 )
 
 func ControlPanel() {
@@ -23,10 +24,28 @@ func ControlPanel() {
 	tab.Append("Players", players)
 
 	plist := ui.NewTable(&ui.TableParams{
-		Model: ui.NewTableModel(PlayerListTableModelHandler{}),
+		Model:                         ui.NewTableModel(PlayerListTableModelHandler{}),
+		RowBackgroundColorModelColumn: 1,
 	})
 	players.Append(plist, false)
-
+	plist.AppendImageTextColumn(
+		"Player",
+		3,
+		2,
+		ui.TableModelColumnNeverEditable,
+		nil,
+	)
+	plist.AppendButtonColumn(
+		"Info",
+		4,
+		ui.TableModelColumnAlwaysEditable,
+	)
+	plist.AppendTextColumn(
+		"Note",
+		5,
+		ui.TableModelColumnAlwaysEditable,
+		nil,
+	)
 	cp.Show()
 }
 
@@ -39,30 +58,35 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 		ui.TableString(""), // Player name
 		ui.TableImage{},    // Player face
 		ui.TableString(""), // Action button
+		ui.TableString(""), // Player note
 	}
 }
 
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
-	return 0 // TODO
+	return utils.Srv.PlayerCount()
 }
 
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
 	switch column {
-	case 0:
+	case 1:
 		// Check if player is punished
 		return ui.TableColor{}
-	case 1:
-		// Return player name
-		return ui.TableString("Player")
 	case 2:
-		// Return player skin
-		return ui.TableImage{}
+		return ui.TableString("Player")
 	case 3:
+		// Return player skin
+		return ui.TableImage{I: ui.NewImage(0, 0)}
+	case 4:
 		return ui.TableString("...")
+	case 5:
+		return ui.TableString("Note")
 	}
-	panic(fmt.Errorf("invalid table column %v, expected 0-3", row))
+	panic(fmt.Errorf("invalid table column %v, expected 1-5", row))
 }
 
-func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, _, _ int, _ ui.TableValue) {
-	panic("implement me")
+func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, _, column int, _ ui.TableValue) {
+	switch column {
+	case 4:
+	case 5:
+	}
 }
