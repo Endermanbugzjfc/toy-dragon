@@ -14,29 +14,29 @@ type EventListener struct {
 }
 
 func (el EventListener) HandleChat(_ *event.Context, msg *string) {
-	if !utils.Config.Server.Notification.PlayerChat {
+	if !utils.Conf.Server.Notification.PlayerChat {
 		return
 	}
 
 	go func(alert bool) {
-		pc := utils.OsaEscape("[" + utils.Config.Server.Name + "] Message from " + el.Player.Name())
+		pc := utils.OsaEscape("[" + utils.Conf.Server.Name + "] Message from " + el.Player.Name())
 		path := playersession.GetFaceFile(el.Player.Name())
 		if alert {
 			_ = beeep.Alert(pc, *msg, path)
 		} else {
 			_ = beeep.Notify(pc, *msg, path)
 		}
-	}(utils.Config.Server.Notification.AlertSound)
+	}(utils.Conf.Server.Notification.AlertSound)
 }
 
 func (el EventListener) HandleLeave() {
-	if !utils.Config.Server.Notification.PlayerQuit {
+	if !utils.Conf.Server.Notification.PlayerQuit {
 		return
 	}
 
 	go func(alert bool) {
 		PlayerCountUpdate()
-		pl := utils.OsaEscape("[" + utils.Config.Server.Name + "] Player leave ")
+		pl := utils.OsaEscape("[" + utils.Conf.Server.Name + "] Player leave ")
 		msg := "Player " + el.Player.Name() + " has left the server"
 		path := playersession.GetFaceFile(el.Player.Name())
 		if alert {
@@ -44,5 +44,5 @@ func (el EventListener) HandleLeave() {
 		} else {
 			_ = beeep.Notify(pl, msg, path)
 		}
-	}(utils.Config.Server.Notification.AlertSound)
+	}(utils.Conf.Server.Notification.AlertSound)
 }

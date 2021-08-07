@@ -1,9 +1,14 @@
 package utils
 
-import "github.com/df-mc/dragonfly/server"
+import (
+	"fmt"
+	"github.com/df-mc/dragonfly/server"
+	"github.com/pelletier/go-toml"
+	"io/ioutil"
+	"os"
+)
 
 type CustomConfig struct {
-	server.Config
 	Network struct {
 		Address     string
 		UPNPForward bool
@@ -52,6 +57,27 @@ func (conf CustomConfig) ToServerConfig() server.Config {
 	return sc
 }
 
+func (conf *CustomConfig) Load() error {
+	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
+		data, err := toml.Marshal(conf)
+		if err != nil {
+			return fmt.Errorf("failed encoding default config: %v", err)
+		}
+		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
+			return fmt.Errorf("failed creating config: %v", err)
+		}
+		return nil
+	}
+	data, err := ioutil.ReadFile("config.toml")
+	if err != nil {
+		return fmt.Errorf("error reading config: %v", err)
+	}
+	if err := toml.Unmarshal(data, conf); err != nil {
+		return fmt.Errorf("error decoding config: %v", err)
+	}
+	return nil
+}
+
 func DefaultConfig() CustomConfig {
 	conf := CustomConfig{}
 	conf.FromServerConfig(server.DefaultConfig())
@@ -64,7 +90,7 @@ func DefaultConfig() CustomConfig {
 	return conf
 }
 
-func (conf *CustomConfig) FromServerConfig(sc server.Config) *CustomConfig {
+func (conf CustomConfig) FromServerConfig(sc server.Config) CustomConfig {
 	conf.Network.Address = sc.Network.Address
 	conf.Server.Name = sc.Server.Name
 	conf.Server.MaximumPlayers = sc.Players.MaxCount

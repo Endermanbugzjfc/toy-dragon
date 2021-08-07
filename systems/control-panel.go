@@ -58,12 +58,12 @@ func (hooks CustomLoggerHook) Fire(entry *logrus.Entry) error {
 func ControlPanel() {
 	serverstarted = false
 
-	panel := ui.NewWindow("["+utils.Config.Server.Name+"] Control Panel", 640, 480, true)
+	panel := ui.NewWindow("["+utils.Conf.Server.Name+"] Control Panel", 640, 480, true)
 	panel.OnClosing(func(_ *ui.Window) bool {
 		var v = true
 		var err error
 		if serverstarted {
-			v, err = dlgs.Question("["+utils.Config.Server.Name+"]", "Server is still running! Cosing the control panel will shut the server down, are you sure to continue?", true)
+			v, err = dlgs.Question("["+utils.Conf.Server.Name+"]", "Server is still running! Cosing the control panel will shut the server down, are you sure to continue?", true)
 		}
 		if err != nil {
 			v = true
