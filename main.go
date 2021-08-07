@@ -12,13 +12,9 @@ import (
 	"github.com/pelletier/go-toml"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
-	"image"
-	"image/png"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	servercmds "server/cmds"
-	"server/playersession"
 	"server/system"
 	"server/utils"
 	"strings"
@@ -93,47 +89,16 @@ func startServer() {
 			return
 		}
 
+		utils.Log.Errorln(system.SavePlayerFace(player))
+
 		go func(pskin skin.Skin, folder, name string) {
-			path := playersession.GetFaceFile(name)
-
-			if _, err3 := os.Stat(path); os.IsNotExist(err3) {
-				err4 := os.MkdirAll(filepath.Dir(path), os.ModePerm)
-				if err4 != nil {
-					panic(err)
-				}
-
-				var size int
-				if pskin.Bounds().Max.X < 128 {
-					size = 8
-				} else {
-					size = 16
-				}
-				alpha := image.NewRGBA(image.Rect(0, 0, size, size))
-				for x := 0; x < size; x++ {
-					for y := 0; y < size; y++ {
-						alpha.Set(x, y, pskin.At(size+x, size+y))
-					}
-				}
-
-				stream, err1 := os.Create(path)
-				if err1 != nil {
-					panic(err1)
-				}
-
-				err2 := png.Encode(stream, alpha)
-				_ = stream.Close()
-				if err2 != nil {
-					panic(err2)
-				}
-			}
-
 			if utils.Config.Server.Notification.PlayerJoin {
 				pj := utils.OsaEscape("[" + utils.Config.Server.Name + "] Player joined")
 				msg := utils.OsaEscape("Player " + player.Name() + " has joined the server")
 				if utils.Config.Server.Notification.AlertSound {
-					_ = beeep.Alert(pj, msg, path)
+					_ = beeep.Alert(pj, msg, system.GetFaceFilePath(player))
 				} else {
-					_ = beeep.Notify(pj, msg, path)
+					_ = beeep.Notify(pj, msg, system.GetFaceFilePath(player))
 				}
 			}
 		}(player.Skin(), utils.Config.Player.FaceCacheFolder, player.Name())
