@@ -25,26 +25,20 @@ import (
 	"time"
 )
 
-var Serverobj *server.Server
-var Config *utils.CustomConfig
-var Log *logrus.Logger
-
 func main() {
 
 	chat.Global.Subscribe(chat.StdoutSubscriber{})
 
 	utils.Log = logrus.New()
-	Log = utils.Log
-	Log.Formatter = &logrus.TextFormatter{ForceColors: true}
-	Log.Level = logrus.DebugLevel
-	Log.AddHook(system.CustomLoggerHook{})
+	utils.Log.Formatter = &logrus.TextFormatter{ForceColors: true}
+	utils.Log.Level = logrus.DebugLevel
+	utils.Log.AddHook(system.CustomLoggerHook{})
 
 	config, err := readConfig()
 	if err != nil {
-		Log.Fatalln(err)
+		utils.Log.Fatalln(err)
 	}
-	Config = &config
-	utils.Config = Config
+	utils.Config = &config
 
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
@@ -71,21 +65,19 @@ func startServer() {
 
 	config, err := readConfig()
 	if err != nil {
-		Log.Fatalln(err)
+		utils.Log.Fatalln(err)
 	}
-	Config = &config
-	utils.Config = Config
+	utils.Config = &config
 
-	serverconf := Config.ToServerConfig()
-	utils.Serverobj = server.New(&serverconf, Log)
-	Serverobj = utils.Serverobj
-	Serverobj.CloseOnProgramEnd()
+	serverconf := utils.Config.ToServerConfig()
+	utils.Serverobj = server.New(&serverconf, utils.Log)
+	utils.Serverobj.CloseOnProgramEnd()
 
-	if err := Serverobj.Start(); err != nil {
-		Log.Fatalln(err)
+	if err := utils.Serverobj.Start(); err != nil {
+		utils.Log.Fatalln(err)
 	}
 
-	if Config.Network.UPNPForward {
+	if utils.Config.Network.UPNPForward {
 		upnpFoward()
 	}
 
@@ -95,7 +87,7 @@ func startServer() {
 	system.PlayerCountUpdate()
 
 	for {
-		player, err := Serverobj.Accept()
+		player, err := utils.Serverobj.Accept()
 		go system.PlayerCountUpdate()
 		if err != nil {
 			return
@@ -135,16 +127,16 @@ func startServer() {
 				}
 			}
 
-			if Config.Server.Notification.PlayerJoin {
-				pj := utils.OsaEscape("[" + Config.Server.Name + "] Player joined")
+			if utils.Config.Server.Notification.PlayerJoin {
+				pj := utils.OsaEscape("[" + utils.Config.Server.Name + "] Player joined")
 				msg := utils.OsaEscape("Player " + player.Name() + " has joined the server")
-				if Config.Server.Notification.AlertSound {
+				if utils.Config.Server.Notification.AlertSound {
 					_ = beeep.Alert(pj, msg, path)
 				} else {
 					_ = beeep.Notify(pj, msg, path)
 				}
 			}
-		}(player.Skin(), Config.Player.FaceCacheFolder, player.Name())
+		}(player.Skin(), utils.Config.Player.FaceCacheFolder, player.Name())
 		player.Handle(&system.EventListener{Player: player})
 	}
 }
@@ -173,31 +165,31 @@ func readConfig() (utils.CustomConfig, error) {
 }
 
 func upnpFoward() {
-	Log.Infoln("Forwarding UPNP...")
+	utils.Log.Infoln("Forwarding UPNP...")
 
 	// connect to router
 	d, err := upnp.Discover()
 	if err != nil {
-		Log.Fatal(err)
+		utils.Log.Fatal(err)
 	}
 
 	// discover external IP
 	ip, err := d.ExternalIP()
 	if err != nil {
-		Log.Fatal(err)
+		utils.Log.Fatal(err)
 	}
-	Log.Infoln("UPNP forward succeeds, your external IP is:", ip)
+	utils.Log.Infoln("UPNP forward succeeds, your external IP is:", ip)
 
 	// forward a port
 	err = d.Forward(19132, "upnp test")
 	if err != nil {
-		Log.Fatal(err)
+		utils.Log.Fatal(err)
 	}
 
 	defer func(d *upnp.IGD, port uint16) {
 		err := d.Clear(port)
 		if err != nil {
-			Log.Fatal(err)
+			utils.Log.Fatal(err)
 		}
 	}(d, 19132)
 
