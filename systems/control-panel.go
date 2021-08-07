@@ -3,7 +3,11 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
-	"server/utils"
+)
+
+var (
+	rowSessionMap        []*PlayerSession
+	playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
 )
 
 func ControlPanel() {
@@ -24,7 +28,7 @@ func ControlPanel() {
 	tab.Append("Players", players)
 
 	plist := ui.NewTable(&ui.TableParams{
-		Model:                         ui.NewTableModel(PlayerListTableModelHandler{}),
+		Model:                         playerListTableModel,
 		RowBackgroundColorModelColumn: 1,
 	})
 	players.Append(plist, false)
@@ -63,7 +67,7 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 }
 
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
-	return utils.Srv.PlayerCount()
+	return len(rowSessionMap)
 }
 
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
@@ -72,16 +76,41 @@ func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int
 		// Check if player is punished
 		return ui.TableColor{}
 	case 2:
-		return ui.TableString("Player")
+		return ui.TableString(*rowSessionMap[row].Name)
 	case 3:
 		// Return player skin
 		return ui.TableImage{I: ui.NewImage(0, 0)}
 	case 4:
 		return ui.TableString("...")
 	case 5:
-		return ui.TableString("Note")
+		return ui.TableString(rowSessionMap[row].Note)
 	}
 	panic(fmt.Errorf("invalid table column %v, expected 1-5", row))
+}
+
+func Quit(ps *PlayerSession) bool {
+	var row *int
+	for index, sps := range rowSessionMap {
+		if sps == ps {
+			row = &index
+			break
+		}
+	}
+	if row == nil {
+		return false
+	}
+	rowSessionMap = append(rowSessionMap[0:*row], rowSessionMap[*row+1:]...)
+	ui.QueueMain(func() {
+		playerListTableModel.RowDeleted(*row)
+	})
+	return true
+}
+
+func Join(ps *PlayerSession) {
+	rowSessionMap = append(rowSessionMap, ps)
+	ui.QueueMain(func() {
+		playerListTableModel.RowInserted(len(rowSessionMap) - 1)
+	})
 }
 
 func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, _, column int, _ ui.TableValue) {
