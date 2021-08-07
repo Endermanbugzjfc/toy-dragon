@@ -1,4 +1,4 @@
-package system
+package systems
 
 import (
 	"github.com/andlabs/ui"

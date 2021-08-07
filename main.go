@@ -15,7 +15,6 @@ import (
 	"io/ioutil"
 	"os"
 	servercmds "server/cmds"
-	"server/system"
 	"server/utils"
 	"strings"
 	"time"
@@ -28,7 +27,7 @@ func main() {
 	utils.Log = logrus.New()
 	utils.Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	utils.Log.Level = logrus.DebugLevel
-	utils.Log.AddHook(system.CustomLoggerHook{})
+	utils.Log.AddHook(systems.CustomLoggerHook{})
 
 	config, err := readConfig()
 	if err != nil {
@@ -39,25 +38,25 @@ func main() {
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
 	for cmdoption := range cmd.Commands() {
-		system.Cmdtrigger = append(system.Cmdtrigger, cmdoption)
+		systems.Cmdtrigger = append(systems.Cmdtrigger, cmdoption)
 	}
 
 	go func() {
 		for {
-			system.Startlock = make(chan bool)
-			<-system.Startlock
+			systems.Startlock = make(chan bool)
+			<-systems.Startlock
 			startServer()
-			system.PlayerLabelReset()
-			system.ServerStatUpdate(system.StatOffline)
+			systems.PlayerLabelReset()
+			systems.ServerStatUpdate(systems.StatOffline)
 		}
 	}()
 
-	_ = ui.Main(system.ControlPanel)
+	_ = ui.Main(systems.ControlPanel)
 }
 
 func startServer() {
-	system.ClearCPConsole()
-	system.ServerStatUpdate(system.StatRunning)
+	systems.ClearCPConsole()
+	systems.ServerStatUpdate(systems.StatRunning)
 
 	config, err := readConfig()
 	if err != nil {
@@ -79,30 +78,30 @@ func startServer() {
 
 	console()
 
-	system.ServerStatUpdate(system.StatRunning)
-	system.PlayerCountUpdate()
+	systems.ServerStatUpdate(systems.StatRunning)
+	systems.PlayerCountUpdate()
 
 	for {
 		player, err := utils.Serverobj.Accept()
-		go system.PlayerCountUpdate()
+		go systems.PlayerCountUpdate()
 		if err != nil {
 			return
 		}
 
-		utils.Log.Errorln(system.SavePlayerFace(player))
+		utils.Log.Errorln(systems.SavePlayerFace(player))
 
 		go func(pskin skin.Skin, folder, name string) {
 			if utils.Config.Server.Notification.PlayerJoin {
 				pj := utils.OsaEscape("[" + utils.Config.Server.Name + "] Player joined")
 				msg := utils.OsaEscape("Player " + player.Name() + " has joined the server")
 				if utils.Config.Server.Notification.AlertSound {
-					_ = beeep.Alert(pj, msg, system.GetFaceFilePath(player))
+					_ = beeep.Alert(pj, msg, systems.GetFaceFilePath(player))
 				} else {
-					_ = beeep.Notify(pj, msg, system.GetFaceFilePath(player))
+					_ = beeep.Notify(pj, msg, systems.GetFaceFilePath(player))
 				}
 			}
 		}(player.Skin(), utils.Config.Player.FaceCacheFolder, player.Name())
-		player.Handle(&system.EventListener{Player: player})
+		player.Handle(&systems.EventListener{Player: player})
 	}
 }
 

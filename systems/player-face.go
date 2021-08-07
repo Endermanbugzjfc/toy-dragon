@@ -1,4 +1,4 @@
-package system
+package systems
 
 import (
 	"github.com/df-mc/dragonfly/server/player"
