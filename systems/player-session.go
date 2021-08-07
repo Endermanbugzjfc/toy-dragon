@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"image/color"
 	"sync"
 	"time"
 )
@@ -26,6 +27,7 @@ type PlayerSession struct {
 
 	joinTime time.Time
 	Note     string
+	Colour   color.RGBA
 }
 
 func (ps PlayerSession) Name() string {

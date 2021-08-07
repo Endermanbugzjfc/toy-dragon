@@ -72,8 +72,13 @@ func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int
 	defer SessionsMu.RUnlock()
 	switch column {
 	case 1:
-		// Check if player is punished
-		return ui.TableColor{}
+		c := &Sessions[row].Colour
+		return ui.TableColor{
+			R: float64(c.R),
+			G: float64(c.G),
+			B: float64(c.B),
+			A: float64(c.A),
+		}
 	case 2:
 		return ui.TableString(Sessions[row].Name())
 	case 3:
