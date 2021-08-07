@@ -9,6 +9,7 @@ import (
 	"github.com/gen2brain/beeep"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
+	"log"
 	servercmds "server/cmds"
 	"server/systems"
 	"server/utils"
@@ -25,21 +26,7 @@ func main() {
 
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
-	for cmdoption := range cmd.Commands() {
-		systems.Cmdtrigger = append(systems.Cmdtrigger, cmdoption)
-	}
-
-	go func() {
-		for {
-			systems.Startlock = make(chan bool)
-			<-systems.Startlock
-			startServer()
-			systems.PlayerLabelReset()
-			systems.ServerStatUpdate(systems.StatOffline)
-		}
-	}()
-
-	_ = ui.Main(systems.ControlPanel)
+	log.Fatalln(ui.Main(systems.ControlPanel))
 }
 
 func startServer() {
