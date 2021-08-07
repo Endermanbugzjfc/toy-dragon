@@ -5,10 +5,7 @@ import (
 	"github.com/andlabs/ui"
 )
 
-var (
-	rowSessionMap        []*PlayerSession
-	playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
-)
+var playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
 
 func ControlPanel() {
 	cp := ui.NewWindow("【DragonFly CP】翡翠出品。正宗廢品", 640, 480, true)
@@ -67,30 +64,34 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 }
 
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
-	return len(rowSessionMap)
+	return len(Sessions)
 }
 
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
+	SessionsMu.RLock()
+	defer SessionsMu.RUnlock()
 	switch column {
 	case 1:
 		// Check if player is punished
 		return ui.TableColor{}
 	case 2:
-		return ui.TableString(*rowSessionMap[row].Name)
+		return ui.TableString(Sessions[row].Name())
 	case 3:
 		// Return player skin
 		return ui.TableImage{I: ui.NewImage(0, 0)}
 	case 4:
 		return ui.TableString("...")
 	case 5:
-		return ui.TableString(rowSessionMap[row].Note)
+		return ui.TableString(Sessions[row].Note)
 	}
 	panic(fmt.Errorf("invalid table column %v, expected 1-5", row))
 }
 
 func Quit(ps *PlayerSession) bool {
+	SessionsMu.Lock()
+	defer SessionsMu.Unlock()
 	var row *int
-	for index, sps := range rowSessionMap {
+	for index, sps := range Sessions {
 		if sps == ps {
 			row = &index
 			break
@@ -99,7 +100,7 @@ func Quit(ps *PlayerSession) bool {
 	if row == nil {
 		return false
 	}
-	rowSessionMap = append(rowSessionMap[0:*row], rowSessionMap[*row+1:]...)
+	Sessions = append(Sessions[0:*row], Sessions[*row+1:]...)
 	ui.QueueMain(func() {
 		playerListTableModel.RowDeleted(*row)
 	})
@@ -107,9 +108,11 @@ func Quit(ps *PlayerSession) bool {
 }
 
 func Join(ps *PlayerSession) {
-	rowSessionMap = append(rowSessionMap, ps)
+	SessionsMu.Lock()
+	defer SessionsMu.Unlock()
+	Sessions = append(Sessions, ps)
 	ui.QueueMain(func() {
-		playerListTableModel.RowInserted(len(rowSessionMap) - 1)
+		playerListTableModel.RowInserted(len(Sessions) - 1)
 	})
 }
 
