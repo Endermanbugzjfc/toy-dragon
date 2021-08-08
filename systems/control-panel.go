@@ -8,7 +8,8 @@ import (
 
 var (
 	playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
-	searchPlayerMode     bool
+	lastSearched         map[int]int
+	numRows              int
 )
 
 func ControlPanel() {
@@ -78,17 +79,21 @@ func searchPlayer(entry *ui.Entry) {
 		}
 	}
 
-	if len(searched) <= 0 {
-		if searchPlayerMode {
-			resetPlayerList()
-			searchPlayerMode = false
+	if len(lastSearched) > 0 {
+		numRows = len(lastSearched)
+		for _, si := range lastSearched {
+			delete(lastSearched, si)
+			playerListTableModel.RowDeleted(si)
 		}
+	}
+
+	if len(searched) <= 0 {
+		// TODO: Reset table
 		return
 	}
 
-	searchPlayerMode = true
-	clearPlayerList()
-	for index := range searched {
+	for index, sr := range searched {
+		lastSearched[index] = sr
 		playerListTableModel.RowInserted(index)
 	}
 }
@@ -107,7 +112,7 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 }
 
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
-	return len(Sessions)
+	return numRows
 }
 
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {

@@ -23,6 +23,7 @@ func NewSession(name *string) *PlayerSession {
 	Sessions = append(Sessions, ps)
 	row := len(Sessions) - 1
 	ui.QueueMain(func() {
+		numRows++
 		playerListTableModel.RowInserted(row)
 	})
 	return ps
@@ -59,6 +60,7 @@ func (ps *PlayerSession) Close() bool {
 	}
 	Sessions = append(Sessions[0:*row], Sessions[*row+1:]...)
 	ui.QueueMain(func() {
+		numRows--
 		playerListTableModel.RowDeleted(*row)
 	})
 	return true
