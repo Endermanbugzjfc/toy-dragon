@@ -14,15 +14,20 @@ import (
 var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
 	playerListTableContent = &Sessions
-	linkedConfig           = utils.Conf
-	Result                 *ui.Label
+	originalConfig         utils.CustomConfig
 	PanelStatus            = "Control Panel"
+
+	result        = ui.NewLabel("")
+	settingsReset = ui.NewButton("Reset")
+	settingsSave  = ui.NewButton("Save")
 
 	userSearchNote   bool
 	userSettingsCate *ui.Form
 )
 
 func ControlPanel() {
+	originalConfig = *utils.Conf
+
 	cp := ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
 	cp.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
@@ -56,9 +61,8 @@ func ControlPanel() {
 		searchPlayer(search)
 	})
 
-	Result = ui.NewLabel("")
-	Result.Hide()
-	searchbar.Append(Result, false)
+	result.Hide()
+	searchbar.Append(result, false)
 
 	plist := ui.NewTable(&ui.TableParams{
 		Model:                         playerListTableModel,
@@ -100,11 +104,9 @@ func ControlPanel() {
 		settingsCatePicker.Append(sc.Name)
 	}
 
-	settingsReset := ui.NewButton("Reset")
 	settingsGeneral.Append(settingsReset, false)
 	settingsReset.Disable()
 
-	settingsSave := ui.NewButton("Save")
 	settingsGeneral.Append(settingsSave, false)
 	settingsSave.Disable()
 
@@ -178,22 +180,16 @@ func ControlPanel() {
 
 	srvName := ui.NewEntry()
 	srvCate.Append("Server name: ", srvName, true)
-	srvNameId := initResettableOption(srvName, func(original *utils.CustomConfig) {
-		srvName.SetText(original.Server.Name)
-	})
+	srvName.SetText(utils.Conf.Server.Name)
 	srvName.OnChanged(func(srvName *ui.Entry) {
-		if originalConfig(srvNameId) == srvName.Text() {
-			cancelConfigChange(srvNameId)
-		}
-		cloneConfig(srvNameId).Server.Name = srvName.Text()
-		cp.SetTitle("[" + entsrvNamery.Text() + "] " + PanelStatus)
+		cp.SetTitle("[" + srvName.Text() + "] " + PanelStatus)
+		utils.Conf.Server.Name = srvName.Text()
+		configUpdate()
 	})
 
 	maxPlayers := ui.NewSpinbox(0, math.MaxInt32) // TODO: Add help
 	srvCate.Append("Maximum players count: ", maxPlayers, true)
-	maxPlayersId := initResettableOption(maxPlayers, func(original *utils.CustomConfig) {
-		maxPlayers.SetValue(original.Server.MaximumPlayers)
-	})
+	maxPlayers.SetValue(utils.Conf.Server.MaximumPlayers)
 	maxPlayers.OnChanged(func(maxPlayers *ui.Spinbox) {
 		SessionsMu.RLock()
 		defer SessionsMu.RUnlock()
@@ -203,10 +199,8 @@ func ControlPanel() {
 			maxPlayers.SetValue(sessionsCount)
 			return
 		}
-		cloneConfig(maxPlayersId).Server.MaximumPlayers = maxPlayers.Value()
-		if originalConfig(maxPlayersId) == srvName.Text() {
-			cancelConfigChange(maxPlayersId)
-		}
+		utils.Conf.Server.MaximumPlayers = maxPlayers.Value()
+		configUpdate()
 	})
 
 	shutMsg := ui.NewEntry()
@@ -350,8 +344,14 @@ func ControlPanel() {
 	cp.Show()
 }
 
-func cloneConfig() *utils.CustomConfig {
-
+func configUpdate() {
+	if originalConfig == *utils.Conf {
+		settingsReset.Disable()
+		settingsSave.Disable()
+		return
+	}
+	settingsSave.Enable()
+	settingsReset.Enable()
 }
 
 func searchPlayer(entry *ui.Entry) {
@@ -395,10 +395,10 @@ func searchPlayer(entry *ui.Entry) {
 	}
 
 	if entry.Text() == "" {
-		Result.Hide()
+		result.Hide()
 	} else {
-		Result.Show()
-		Result.SetText(strconv.Itoa(len(searched)) + " results")
+		result.Show()
+		result.SetText(strconv.Itoa(len(searched)) + " results")
 	}
 }
 
