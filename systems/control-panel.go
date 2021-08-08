@@ -3,6 +3,7 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"github.com/skratchdot/open-golang/open"
 	"server/utils"
 	"strconv"
 	"strings"
@@ -134,6 +135,15 @@ func ControlPanel() {
 
 	addressPort := ui.NewSpinbox(0, 65535)
 	address.Append(addressPort, true)
+
+	addressHelp := ui.NewButton("?")
+	address.Append(addressHelp, false)
+	addressHelp.OnClicked(func(*ui.Button) {
+		const addressHelpLink = "https://pmmp.readthedocs.io/en/rtfd/faq/connecting/defaultrouteip.html"
+		if err := open.Start(addressHelpLink); err != nil {
+			ui.MsgBoxError(cp, "Control Panel Exception", "Failed to open "+addressHelpLink+" with your system default browser.\n\nThis exception does not affect anything in your DragonFly server, please consider open the link manually!\n\n"+err.Error())
+		}
+	})
 
 	upnp := ui.NewHorizontalBox()
 	network.Append("UPnP forward: ", upnp, false)
