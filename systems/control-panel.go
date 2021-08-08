@@ -175,12 +175,6 @@ func ControlPanel() {
 	srvNameEntry := ui.NewEntry()
 	srvName.Append(srvNameEntry, true)
 
-	randName := ui.NewButton("Randomize")
-	srvName.Append(randName, false)
-	randName.OnClicked(func(*ui.Button) {
-		// TODO
-	})
-
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
 			dummy.Hide()
