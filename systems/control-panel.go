@@ -28,9 +28,9 @@ func ControlPanel() {
 	players := ui.NewVerticalBox()
 	tab.Append("Players", players)
 
-	psearch := ui.NewSearchEntry()
+	search := ui.NewSearchEntry()
 	players.Append(players, false)
-	psearch.OnChanged(searchPlayer)
+	search.OnChanged(searchPlayer)
 
 	plist := ui.NewTable(&ui.TableParams{
 		Model:                         playerListTableModel,
