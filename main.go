@@ -22,7 +22,12 @@ func main() {
 	utils.Log = logrus.New()
 	utils.Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	utils.Log.Level = logrus.DebugLevel
-	utils.Log.AddHook(systems.CustomLoggerHook{})
+
+	conf := utils.DefaultConfig()
+	utils.Conf = &conf
+	if err := conf.Load(); err != nil {
+		utils.Log.Fatal(err)
+	}
 
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
