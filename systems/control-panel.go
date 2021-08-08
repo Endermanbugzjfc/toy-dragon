@@ -5,6 +5,7 @@ import (
 	"github.com/andlabs/ui"
 	"github.com/skratchdot/open-golang/open"
 	"math"
+	"path/filepath"
 	"server/utils"
 	"strconv"
 	"strings"
@@ -161,6 +162,12 @@ func ControlPanel() {
 	upnpDescription := ui.NewEntry()
 	upnp.Append(upnpDescription, true)
 
+	upnpHelp := ui.NewButton("?")
+	upnp.Append(upnpHelp, false)
+	upnpHelp.OnClicked(func(*ui.Button) {
+		ui.MsgBox(cp, "UPnP Forward", "Basically automatic port forward, so you don't have to login into your router and do all the confusing stuff.\n\n(The forward will NOT start before you save settings)")
+	})
+
 	// Server category
 	srvCate := ui.NewForm()
 	srvCate.Hide()
@@ -213,6 +220,45 @@ func ControlPanel() {
 	ntfSound := ui.NewCheckbox("")
 	srvCate.Append("Notification sound notification: ", ntfSound, false)
 
+	// World category
+	wrd := ui.NewForm()
+	wrd.Hide()
+	settings.Append(wrd, false)
+	wrd.SetPadded(true)
+
+	wrdName := ui.NewEntry()
+	wrd.Append("World display name: ", wrdName, true)
+
+	wrdFolder := ui.NewHorizontalBox()
+	wrd.Append("World data folder: ", wrdFolder, true)
+	wrdFolder.SetPadded(true)
+
+	wrdFolderEntry := ui.NewEntry()
+	wrdFolder.Append(wrdFolderEntry, true)
+
+	wrdFolderBrowser := ui.NewButton("Browse")
+	wrdFolder.Append(wrdFolderBrowser, false)
+	wrdFolderBrowser.OnClicked(func(*ui.Button) {
+		path := ui.SaveFile(cp) // This blocks the main goroutine but whatever
+		if path == "" {
+			return
+		}
+		wrdFolderEntry.SetText(filepath.Dir(path))
+	})
+
+	tickRadius := ui.NewHorizontalBox()
+	wrd.Append("Simulation distance: ", tickRadius, false)
+	tickRadius.SetPadded(true)
+
+	tickRadiusEntry := ui.NewSpinbox(0, 32768)
+	tickRadius.Append(tickRadiusEntry, true)
+
+	tickRadiusHelp := ui.NewButton("?")
+	tickRadius.Append(tickRadiusHelp, false)
+	tickRadiusHelp.OnClicked(func(*ui.Button) {
+		ui.MsgBox(cp, "Simulation Distance", "Simulation Distance is the maximum distance in chunks that a chunk must be to a player in order for it to receive random ticks, this option may be set to 0 to disable random block updates altogether.")
+	})
+
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
 			dummy.Hide()
@@ -227,6 +273,9 @@ func ControlPanel() {
 		case 1:
 			userSettingsCate = srvCate
 			srvCate.Show()
+		case 2:
+			userSettingsCate = wrd
+			wrd.Show()
 		}
 	})
 
