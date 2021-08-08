@@ -63,7 +63,7 @@ func searchPlayer(entry *ui.Entry) {
 	SessionsMu.RLock()
 	defer SessionsMu.RUnlock()
 
-	searched := make(map[int]int) // Key = session index, value = row index
+	searched := make(map[int]struct{}) // Key = session index, value = row index
 	for index, sp := range Sessions {
 		for _, sk := range keys {
 			if sk == "" {
@@ -73,22 +73,29 @@ func searchPlayer(entry *ui.Entry) {
 				if _, ok := searched[index]; ok {
 					continue
 				}
-				searched[index] = len(searched)
+				searched[index] = struct{}{}
 			}
 		}
 	}
 
 	resetPlayerListTable()
-	if len(searched) <= 0 {
-		var appendQueue []*PlayerSession
-		playerListTableContent = &appendQueue
-		for _, sps := range Sessions {
-			appendQueue = append(appendQueue, sps)
+	var (
+		appendQueue   []*PlayerSession
+		appendToQueue = func(ps *PlayerSession) {
+			appendQueue = append(appendQueue, ps)
 			playerListTableModel.RowInserted(len(appendQueue) - 1)
+		}
+	)
+	playerListTableContent = &appendQueue
+	if len(searched) <= 0 {
+		for _, sps := range Sessions {
+			appendToQueue(sps)
 		}
 		playerListTableContent = &Sessions
 	} else {
-		// TODO: Display searched result to player list table
+		for sps := range searched {
+			appendToQueue(Sessions[sps])
+		}
 	}
 }
 
