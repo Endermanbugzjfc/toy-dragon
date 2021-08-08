@@ -3,9 +3,13 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"strings"
 )
 
-var playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
+var (
+	playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
+	searchPlayerMode     bool
+)
 
 func ControlPanel() {
 	cp := ui.NewWindow("[DragonFly CP] 翡翠出品。正宗廢品", 640, 480, true)
@@ -21,8 +25,12 @@ func ControlPanel() {
 	tab := ui.NewTab()
 	cp.SetChild(tab)
 
-	players := ui.NewHorizontalBox()
+	players := ui.NewVerticalBox()
 	tab.Append("Players", players)
+
+	psearch := ui.NewSearchEntry()
+	players.Append(players, false)
+	psearch.OnChanged(searchPlayer)
 
 	plist := ui.NewTable(&ui.TableParams{
 		Model:                         playerListTableModel,
@@ -48,6 +56,41 @@ func ControlPanel() {
 		nil,
 	)
 	cp.Show()
+}
+
+func searchPlayer(entry *ui.Entry) {
+	keys := strings.Split(entry.Text(), " ")
+	SessionsMu.RLock()
+	defer SessionsMu.RUnlock()
+
+	searched := make(map[int]int) // Key = session index, value = row index
+	for index, sp := range Sessions {
+		for _, sk := range keys {
+			if sk == "" {
+				continue
+			}
+			if strings.Contains(sp.Name(), sk) {
+				if _, ok := searched[index]; ok {
+					continue
+				}
+				searched[index] = len(searched)
+			}
+		}
+	}
+
+	if len(searched) <= 0 {
+		if searchPlayerMode {
+			resetPlayerList()
+			searchPlayerMode = false
+		}
+		return
+	}
+
+	searchPlayerMode = true
+	clearPlayerList()
+	for index := range searched {
+		playerListTableModel.RowInserted(index)
+	}
 }
 
 type PlayerListTableModelHandler struct {
