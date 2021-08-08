@@ -63,7 +63,7 @@ func searchPlayer(entry *ui.Entry) {
 	SessionsMu.RLock()
 	defer SessionsMu.RUnlock()
 
-	searched := make(map[int]struct{}) // Key = session index, value = row index
+	searched := make(map[int]struct{}) // Key = session index
 	for index, sp := range Sessions {
 		for _, sk := range keys {
 			if sk == "" {
@@ -125,16 +125,17 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 	}
 }
 
+// NumRows Mutex should be lock before updating table content
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
 	return len(*playerListTableContent)
 }
 
+// CellValue Mutex should be lock before updating table content
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
-	SessionsMu.RLock()
-	defer SessionsMu.RUnlock()
+	content := *playerListTableContent
 	switch column {
 	case 1:
-		c := &Sessions[row].Colour
+		c := &content[row].Colour
 		return ui.TableColor{
 			R: float64(c.R),
 			G: float64(c.G),
@@ -142,14 +143,14 @@ func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int
 			A: float64(c.A),
 		}
 	case 2:
-		return ui.TableString(Sessions[row].Name())
+		return ui.TableString(content[row].Name())
 	case 3:
 		// Return player skin
 		return ui.TableImage{I: ui.NewImage(0, 0)}
 	case 4:
 		return ui.TableString("...")
 	case 5:
-		return ui.TableString(Sessions[row].Note)
+		return ui.TableString(content[row].Note)
 	}
 	panic(fmt.Errorf("invalid table column %v, expected 1-5", row))
 }
@@ -158,8 +159,15 @@ func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, row, column 
 	switch column {
 	case 4:
 	case 5:
-		SessionsMu.Lock()
-		defer SessionsMu.Unlock()
-		Sessions[row].Note = string(value.(ui.TableString))
+		if !searchingPlayer() {
+			SessionsMu.Lock()
+			defer SessionsMu.Unlock()
+		}
+		content := *playerListTableContent
+		content[row].Note = string(value.(ui.TableString))
 	}
+}
+
+func searchingPlayer() bool {
+	return playerListTableContent != &Sessions
 }
