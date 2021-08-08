@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/andlabs/ui"
 	"github.com/skratchdot/open-golang/open"
+	"math"
 	"server/utils"
 	"strconv"
 	"strings"
@@ -167,6 +168,7 @@ func ControlPanel() {
 	srvCate := ui.NewForm()
 	srvCate.Hide()
 	settings.Append(srvCate, false)
+	srvCate.SetPadded(true)
 
 	srvName := ui.NewHorizontalBox()
 	srvCate.Append("Name: ", srvName, true)
@@ -174,6 +176,43 @@ func ControlPanel() {
 
 	srvNameEntry := ui.NewEntry()
 	srvName.Append(srvNameEntry, true)
+
+	maxPlayers := ui.NewSpinbox(0, math.MaxInt32)
+	srvCate.Append("Maximum players count: ", maxPlayers, true)
+
+	shutMsg := ui.NewEntry()
+	srvCate.Append("Server shutdown kick message: ", shutMsg, true)
+
+	auth := ui.NewCheckbox("")
+	srvCate.Append("Require XBox authentication: ", auth, true)
+
+	joinQuit := ui.NewHorizontalBox()
+	srvCate.Append("Player join message: ", joinQuit, true)
+	joinQuit.SetPadded(true)
+
+	joinMsg := ui.NewEntry()
+	joinQuit.Append(joinMsg, true)
+
+	joinQuit.Append(ui.NewLabel("Player quit message: "), false)
+
+	quitMsg := ui.NewEntry()
+	joinQuit.Append(quitMsg, true)
+
+	ntf := ui.NewHorizontalBox()
+	srvCate.Append("Notification: ", ntf, true)
+	ntf.SetPadded(true)
+
+	ntfJoin := ui.NewCheckbox("Player join")
+	ntf.Append(ntfJoin, false)
+
+	ntfChat := ui.NewCheckbox("Player chat")
+	ntf.Append(ntfChat, false)
+
+	ntfQuit := ui.NewCheckbox("Player quit")
+	ntf.Append(ntfQuit, false)
+
+	ntfSound := ui.NewCheckbox("Notification sound")
+	ntf.Append(ntfSound, false)
 
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
