@@ -14,14 +14,16 @@ import (
 var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
 	playerListTableContent = &Sessions
+	linkedConfig           = utils.Conf
 	Result                 *ui.Label
+	PanelStatus            = "Control Panel"
 
 	userSearchNote   bool
 	userSettingsCate *ui.Form
 )
 
 func ControlPanel() {
-	cp := ui.NewWindow("[DragonFly CP] 翡翠出品。正宗廢品", 640, 480, true)
+	cp := ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
 	cp.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
 		return true
@@ -174,15 +176,38 @@ func ControlPanel() {
 	settings.Append(srvCate, false)
 	srvCate.SetPadded(true)
 
-	srvName := ui.NewHorizontalBox()
+	srvName := ui.NewEntry()
 	srvCate.Append("Server name: ", srvName, true)
-	srvName.SetPadded(true)
+	srvNameId := initResettableOption(srvName, func(original *utils.CustomConfig) {
+		srvName.SetText(original.Server.Name)
+	})
+	srvName.OnChanged(func(srvName *ui.Entry) {
+		if originalConfig(srvNameId) == srvName.Text() {
+			cancelConfigChange(srvNameId)
+		}
+		cloneConfig(srvNameId).Server.Name = srvName.Text()
+		cp.SetTitle("[" + entsrvNamery.Text() + "] " + PanelStatus)
+	})
 
-	srvNameEntry := ui.NewEntry()
-	srvName.Append(srvNameEntry, true)
-
-	maxPlayers := ui.NewSpinbox(0, math.MaxInt32)
+	maxPlayers := ui.NewSpinbox(0, math.MaxInt32) // TODO: Add help
 	srvCate.Append("Maximum players count: ", maxPlayers, true)
+	maxPlayersId := initResettableOption(maxPlayers, func(original *utils.CustomConfig) {
+		maxPlayers.SetValue(original.Server.MaximumPlayers)
+	})
+	maxPlayers.OnChanged(func(maxPlayers *ui.Spinbox) {
+		SessionsMu.RLock()
+		defer SessionsMu.RUnlock()
+		sessionsCount := len(Sessions)
+		if maxPlayers.Value() < sessionsCount {
+			ui.MsgBoxError(cp, "Cannot reduce maximum players count", "The maximum players count you just set is smaller than the online players count! Please kick some players out before doing this.")
+			maxPlayers.SetValue(sessionsCount)
+			return
+		}
+		cloneConfig(maxPlayersId).Server.MaximumPlayers = maxPlayers.Value()
+		if originalConfig(maxPlayersId) == srvName.Text() {
+			cancelConfigChange(maxPlayersId)
+		}
+	})
 
 	shutMsg := ui.NewEntry()
 	srvCate.Append("Server shutdown kick message: ", shutMsg, true)
@@ -323,6 +348,10 @@ func ControlPanel() {
 	})
 
 	cp.Show()
+}
+
+func cloneConfig() *utils.CustomConfig {
+
 }
 
 func searchPlayer(entry *ui.Entry) {
