@@ -111,8 +111,29 @@ func ControlPanel() {
 	settings.Append(network, true)
 	network.SetPadded(true)
 
-	address := ui.NewEntry()
-	network.Append("Address: ", address, false)
+	address := ui.NewHorizontalBox()
+	network.Append("Address: ", address, true)
+	address.SetPadded(true)
+
+	adressIp1 := ui.NewSpinbox(0, 239)
+	address.Append(adressIp1, true)
+	address.Append(ui.NewLabel("."), false)
+
+	adressIp2 := ui.NewSpinbox(0, 255)
+	address.Append(adressIp2, true)
+	address.Append(ui.NewLabel("."), false)
+
+	adressIp3 := ui.NewSpinbox(0, 255)
+	address.Append(adressIp3, true)
+	address.Append(ui.NewLabel("."), false)
+
+	adressIp4 := ui.NewSpinbox(0, 255)
+	address.Append(adressIp4, true)
+
+	address.Append(ui.NewLabel("Port: "), false)
+
+	addressPort := ui.NewSpinbox(0, 65535)
+	address.Append(addressPort, true)
 
 	upnp := ui.NewHorizontalBox()
 	network.Append("UPnP forward: ", upnp, false)
@@ -138,6 +159,7 @@ func ControlPanel() {
 		case 0: // Network
 			userSettingsCate = network
 			network.Show()
+		case 1:
 		}
 	})
 
