@@ -12,7 +12,9 @@ var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
 	playerListTableContent = &Sessions
 	Result                 *ui.Label
-	userSearchNote         bool
+
+	userSearchNote   bool
+	userSettingsCate *ui.Form
 )
 
 func ControlPanel() {
@@ -100,6 +102,44 @@ func ControlPanel() {
 	settingsSave := ui.NewButton("Save")
 	settingsGeneral.Append(settingsSave, false)
 	settingsSave.Disable()
+
+	dummy := ui.NewLabel("^^^ Please choose a setting category from the combobox above")
+	settings.Append(dummy, false)
+
+	network := ui.NewForm()
+	network.Hide()
+	settings.Append(network, true)
+	network.SetPadded(true)
+
+	address := ui.NewEntry()
+	network.Append("Address: ", address, false)
+
+	upnp := ui.NewHorizontalBox()
+	network.Append("UPnP forward: ", upnp, false)
+	upnp.SetPadded(true)
+
+	upnpSwitch := ui.NewCheckbox("")
+	upnp.Append(upnpSwitch, false)
+
+	upnpLabel := ui.NewLabel("Port: ")
+	upnp.Append(upnpLabel, false)
+
+	upnpPort := ui.NewSpinbox(0, 65535)
+	upnp.Append(upnpPort, true)
+
+	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
+		if dummy.Visible() {
+			dummy.Hide()
+		}
+		if userSettingsCate != nil && userSettingsCate.Visible() {
+			userSettingsCate.Hide()
+		}
+		switch combobox.Selected() {
+		case 0: // Network
+			userSettingsCate = network
+			network.Show()
+		}
+	})
 
 	cp.Show()
 }
