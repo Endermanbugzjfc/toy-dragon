@@ -107,6 +107,7 @@ func ControlPanel() {
 	dummy := ui.NewLabel("^^^ Please choose a setting category from the combobox above")
 	settings.Append(dummy, false)
 
+	// Network category
 	network := ui.NewForm()
 	network.Hide()
 	settings.Append(network, true)
@@ -146,7 +147,7 @@ func ControlPanel() {
 	})
 
 	upnp := ui.NewHorizontalBox()
-	network.Append("UPnP forward: ", upnp, false)
+	network.Append("UPnP forward: ", upnp, false) // TODO: Set to true
 	upnp.SetPadded(true)
 
 	upnpSwitch := ui.NewCheckbox("")
@@ -162,6 +163,23 @@ func ControlPanel() {
 	upnpDescription := ui.NewEntry()
 	upnp.Append(upnpDescription, true)
 
+	// Server category
+	srvCate := ui.NewForm()
+	settings.Append(srvCate, false)
+
+	srvName := ui.NewHorizontalBox()
+	srvCate.Append("Name: ", srvName, true)
+	srvName.SetPadded(true)
+
+	srvNameEntry := ui.NewEntry()
+	srvName.Append(srvNameEntry, true)
+
+	randName := ui.NewButton("Randomize")
+	srvName.Append(randName, false)
+	randName.OnClicked(func(*ui.Button) {
+		// TODO
+	})
+
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
 			dummy.Hide()
@@ -174,6 +192,8 @@ func ControlPanel() {
 			userSettingsCate = network
 			network.Show()
 		case 1:
+			userSettingsCate = srvCate
+			srvCate.Show()
 		}
 	})
 
