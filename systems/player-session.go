@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"github.com/andlabs/ui"
 	"image/color"
 	"sync"
 	"time"
@@ -16,9 +17,14 @@ func NewSession(name *string) *PlayerSession {
 		name:     name,
 		joinTime: time.Now(),
 	}
+
 	SessionsMu.Lock()
 	defer SessionsMu.Unlock()
 	Sessions = append(Sessions, ps)
+	row := len(Sessions) - 1
+	ui.QueueMain(func() {
+		playerListTableModel.RowInserted(row)
+	})
 	return ps
 }
 
@@ -36,4 +42,25 @@ func (ps PlayerSession) Name() string {
 
 func (ps PlayerSession) JoinTime() time.Time {
 	return ps.joinTime
+}
+
+func (ps *PlayerSession) Close() bool {
+	SessionsMu.Lock()
+	defer SessionsMu.Unlock()
+	var row *int
+	for index, sps := range Sessions {
+		if sps == ps {
+			row = &index
+			break
+		}
+	}
+	if row == nil {
+		return false
+	}
+	Sessions = append(Sessions[0:*row], Sessions[*row+1:]...)
+	ui.QueueMain(func() {
+		playerListTableModel.RowDeleted(*row)
+	})
+	return true
+
 }

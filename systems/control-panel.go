@@ -92,38 +92,12 @@ func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int
 	panic(fmt.Errorf("invalid table column %v, expected 1-5", row))
 }
 
-func Quit(ps *PlayerSession) bool {
-	SessionsMu.Lock()
-	defer SessionsMu.Unlock()
-	var row *int
-	for index, sps := range Sessions {
-		if sps == ps {
-			row = &index
-			break
-		}
-	}
-	if row == nil {
-		return false
-	}
-	Sessions = append(Sessions[0:*row], Sessions[*row+1:]...)
-	ui.QueueMain(func() {
-		playerListTableModel.RowDeleted(*row)
-	})
-	return true
-}
-
-func Join(ps *PlayerSession) {
-	SessionsMu.Lock()
-	defer SessionsMu.Unlock()
-	Sessions = append(Sessions, ps)
-	ui.QueueMain(func() {
-		playerListTableModel.RowInserted(len(Sessions) - 1)
-	})
-}
-
-func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, _, column int, _ ui.TableValue) {
+func (h PlayerListTableModelHandler) SetCellValue(_ *ui.TableModel, row, column int, value ui.TableValue) {
 	switch column {
 	case 4:
 	case 5:
+		SessionsMu.Lock()
+		defer SessionsMu.Unlock()
+		Sessions[row].Note = string(value.(ui.TableString))
 	}
 }
