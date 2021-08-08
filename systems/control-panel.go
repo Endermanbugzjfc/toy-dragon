@@ -147,7 +147,7 @@ func ControlPanel() {
 	})
 
 	upnp := ui.NewHorizontalBox()
-	network.Append("UPnP forward: ", upnp, false) // TODO: Set to true
+	network.Append("UPnP forward: ", upnp, true)
 	upnp.SetPadded(true)
 
 	upnpSwitch := ui.NewCheckbox("")
