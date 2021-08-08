@@ -7,9 +7,8 @@ import (
 )
 
 var (
-	playerListTableModel = ui.NewTableModel(PlayerListTableModelHandler{})
-	lastSearched         map[int]int
-	numRows              int
+	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
+	playerListTableContent *[]*PlayerSession
 )
 
 func ControlPanel() {
@@ -79,22 +78,30 @@ func searchPlayer(entry *ui.Entry) {
 		}
 	}
 
-	if len(lastSearched) > 0 {
-		numRows = len(lastSearched)
-		for _, si := range lastSearched {
-			delete(lastSearched, si)
-			playerListTableModel.RowDeleted(si)
-		}
-	}
-
+	resetPlayerListTable()
 	if len(searched) <= 0 {
-		// TODO: Reset table
+		var appendQueue []*PlayerSession
+		playerListTableContent = &appendQueue
+		for _, sps := range Sessions {
+			appendQueue = append(appendQueue, sps)
+			playerListTableModel.RowInserted(len(appendQueue) - 1)
+		}
+		playerListTableContent = &Sessions
+	} else {
+		// TODO: Display searched result to player list table
+	}
+}
+
+func resetPlayerListTable() {
+	if len(*playerListTableContent) <= 0 {
 		return
 	}
-
-	for index, sr := range searched {
-		lastSearched[index] = sr
-		playerListTableModel.RowInserted(index)
+	deleteQueue := *playerListTableContent
+	playerListTableContent = &deleteQueue
+	for sr := 0; sr < len(deleteQueue); sr++ {
+		del := len(deleteQueue)
+		deleteQueue = deleteQueue[0 : del-1]
+		playerListTableModel.RowDeleted(del)
 	}
 }
 
@@ -112,7 +119,7 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 }
 
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
-	return numRows
+	return len(*playerListTableContent)
 }
 
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
