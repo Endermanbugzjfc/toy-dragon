@@ -259,6 +259,46 @@ func ControlPanel() {
 		ui.MsgBox(cp, "Simulation Distance", "Simulation Distance is the maximum distance in chunks that a chunk must be to a player in order for it to receive random ticks, this option may be set to 0 to disable random block updates altogether.")
 	})
 
+	pCate := ui.NewForm()
+	pCate.Hide()
+	settings.Append(pCate, false)
+	pCate.SetPadded(true)
+
+	renderRadius := ui.NewHorizontalBox()
+	pCate.Append("Maximum chunk distance: ", renderRadius, true)
+	renderRadius.SetPadded(true)
+
+	renderRadiusEntry := ui.NewSpinbox(2, math.MaxInt32)
+	renderRadius.Append(renderRadiusEntry, true)
+
+	renderRadiusHelp := ui.NewButton("?")
+	renderRadius.Append(renderRadiusHelp, false)
+	renderRadiusHelp.OnClicked(func(*ui.Button) {
+		ui.MsgBox(cp, "Maximum Chunk Radius", "Maximum Chunk Radius is the maximum chunk radius that players may set in their settings. If they try to set it above this number, it will be capped and set to the max.")
+	})
+
+	savePData := ui.NewHorizontalBox()
+	pCate.Append("Save player data: ", savePData, true)
+	savePData.SetPadded(true)
+
+	savePDataSwitch := ui.NewCheckbox("")
+	savePData.Append(savePDataSwitch, false)
+
+	savePData.Append(ui.NewLabel("Data folder: "), false)
+
+	pDataFolder := ui.NewEntry()
+	savePData.Append(pDataFolder, true)
+
+	pDataFolderBrowse := ui.NewButton("Browse")
+	savePData.Append(pDataFolderBrowse, false)
+	pDataFolderBrowse.OnClicked(func(*ui.Button) {
+		path := ui.SaveFile(cp)
+		if path == "" {
+			return
+		}
+		pDataFolder.SetText(filepath.Dir(path))
+	})
+
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
 			dummy.Hide()
@@ -270,12 +310,15 @@ func ControlPanel() {
 		case 0: // Network
 			userSettingsCate = network
 			network.Show()
-		case 1:
+		case 1: // Server
 			userSettingsCate = srvCate
 			srvCate.Show()
-		case 2:
+		case 2: // World
 			userSettingsCate = wrd
 			wrd.Show()
+		case 3: // Player
+			userSettingsCate = pCate
+			pCate.Show()
 		}
 	})
 
