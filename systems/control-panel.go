@@ -133,13 +133,15 @@ func ControlPanel() {
 	addressIp4 := ui.NewSpinbox(0, 255)
 	address.Append(addressIp4, true)
 
-	address.Append(ui.NewLabel("Port: "), false)
+	addressPort := ui.NewHorizontalBox()
+	network.Append("Port: ", addressPort, true)
+	addressPort.SetPadded(true)
 
-	addressPort := ui.NewSpinbox(0, 65535)
-	address.Append(addressPort, true)
+	addressPortEntry := ui.NewSpinbox(0, 65535)
+	addressPort.Append(addressPortEntry, true)
 
 	addressHelp := ui.NewButton("?")
-	address.Append(addressHelp, false)
+	addressPort.Append(addressHelp, false)
 	addressHelp.OnClicked(func(*ui.Button) {
 		const addressHelpLink = "https://pmmp.readthedocs.io/en/rtfd/faq/connecting/defaultrouteip.html"
 		if err := open.Start(addressHelpLink); err != nil {
@@ -171,7 +173,7 @@ func ControlPanel() {
 	srvCate.SetPadded(true)
 
 	srvName := ui.NewHorizontalBox()
-	srvCate.Append("Name: ", srvName, true)
+	srvCate.Append("Server name: ", srvName, true)
 	srvName.SetPadded(true)
 
 	srvNameEntry := ui.NewEntry()
@@ -204,21 +206,17 @@ func ControlPanel() {
 		ui.MsgBox(cp, "Dynamic Tag", "\"%v\" will be replaced with the target player's name.\n\n(This dynamic tag only applies to player join / quit messages)")
 	})
 
-	ntf := ui.NewHorizontalBox()
-	srvCate.Append("Notification: ", ntf, true)
-	ntf.SetPadded(true)
+	ntfJoin := ui.NewCheckbox("")
+	srvCate.Append("Player join notification: ", ntfJoin, false)
 
-	ntfJoin := ui.NewCheckbox("Player join")
-	ntf.Append(ntfJoin, false)
+	ntfChat := ui.NewCheckbox("")
+	srvCate.Append("Player chat notification: ", ntfChat, false)
 
-	ntfChat := ui.NewCheckbox("Player chat")
-	ntf.Append(ntfChat, false)
+	ntfQuit := ui.NewCheckbox("")
+	srvCate.Append("Player quit notification: ", ntfQuit, false)
 
-	ntfQuit := ui.NewCheckbox("Player quit")
-	ntf.Append(ntfQuit, false)
-
-	ntfSound := ui.NewCheckbox("Notification sound")
-	ntf.Append(ntfSound, false)
+	ntfSound := ui.NewCheckbox("")
+	srvCate.Append("Notification sound notification: ", ntfSound, false)
 
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
