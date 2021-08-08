@@ -8,7 +8,7 @@ import (
 
 var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
-	playerListTableContent *[]*PlayerSession
+	playerListTableContent = &Sessions
 )
 
 func ControlPanel() {
