@@ -165,6 +165,7 @@ func ControlPanel() {
 
 	// Server category
 	srvCate := ui.NewForm()
+	srvCate.Hide()
 	settings.Append(srvCate, false)
 
 	srvName := ui.NewHorizontalBox()
