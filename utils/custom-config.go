@@ -6,6 +6,7 @@ import (
 	"github.com/pelletier/go-toml"
 	"io/ioutil"
 	"os"
+	"reflect"
 )
 
 type CustomConfig struct {
@@ -37,6 +38,14 @@ type CustomConfig struct {
 		FaceCacheFolder string
 		SaveData        bool
 	}
+}
+
+func (conf CustomConfig) GetCategories() (cate []reflect.StructField) {
+	ref := reflect.TypeOf(conf)
+	for sf := 0; sf < ref.NumField(); sf++ {
+		cate = append(cate, ref.Field(sf))
+	}
+	return
 }
 
 func (conf CustomConfig) ToServerConfig() server.Config {

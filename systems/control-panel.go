@@ -3,6 +3,7 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"server/utils"
 	"strconv"
 	"strings"
 )
@@ -28,6 +29,7 @@ func ControlPanel() {
 	tab := ui.NewTab()
 	cp.SetChild(tab)
 
+	// Players tab
 	players := ui.NewVerticalBox()
 	tab.Append("Players", players)
 
@@ -74,6 +76,20 @@ func ControlPanel() {
 		ui.TableModelColumnAlwaysEditable,
 		nil,
 	)
+
+	// Settings tab
+	settings := ui.NewVerticalBox()
+	settings.SetPadded(true)
+	tab.Append("Settings", settings)
+	tab.SetMargined(1, true)
+
+	settingsCatePicker := ui.NewCombobox()
+	settings.Append(settingsCatePicker, false)
+	for _, sc := range utils.Conf.GetCategories() {
+		settingsCatePicker.Append(sc.Name)
+	}
+	// TODO: Improve label spacing, so it don't stick to the window / box border
+
 	cp.Show()
 }
 
