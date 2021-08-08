@@ -198,6 +198,12 @@ func ControlPanel() {
 	quitMsg := ui.NewEntry()
 	joinQuit.Append(quitMsg, true)
 
+	joinQuitHelp := ui.NewButton("?")
+	joinQuit.Append(joinQuitHelp, false)
+	joinQuitHelp.OnClicked(func(*ui.Button) {
+		ui.MsgBox(cp, "Dynamic Tag", "\"%v\" will be replaced with the target player's name.\n\n(This dynamic tag only applies to player join / quit messages)")
+	})
+
 	ntf := ui.NewHorizontalBox()
 	srvCate.Append("Notification: ", ntf, true)
 	ntf.SetPadded(true)
