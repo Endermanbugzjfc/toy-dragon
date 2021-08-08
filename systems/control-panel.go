@@ -142,11 +142,15 @@ func ControlPanel() {
 	upnpSwitch := ui.NewCheckbox("")
 	upnp.Append(upnpSwitch, false)
 
-	upnpLabel := ui.NewLabel("Port: ")
-	upnp.Append(upnpLabel, false)
+	upnp.Append(ui.NewLabel("Port: "), false)
 
 	upnpPort := ui.NewSpinbox(0, 65535)
 	upnp.Append(upnpPort, true)
+
+	upnp.Append(ui.NewLabel("Description: "), false)
+
+	upnpDescription := ui.NewEntry()
+	upnp.Append(upnpDescription, true)
 
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
 		if dummy.Visible() {
