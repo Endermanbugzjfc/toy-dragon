@@ -156,11 +156,6 @@ func ControlPanel() {
 	upnpSwitch := ui.NewCheckbox("")
 	upnp.Append(upnpSwitch, false)
 
-	upnp.Append(ui.NewLabel("Port: "), false)
-
-	upnpPort := ui.NewSpinbox(0, 65535)
-	upnp.Append(upnpPort, true)
-
 	upnp.Append(ui.NewLabel("Description: "), false)
 
 	upnpDescription := ui.NewEntry()
