@@ -83,12 +83,23 @@ func ControlPanel() {
 	tab.Append("Settings", settings)
 	tab.SetMargined(1, true)
 
+	settingsGeneral := ui.NewHorizontalBox()
+	settings.Append(settingsGeneral, false)
+	settingsGeneral.SetPadded(true)
+
 	settingsCatePicker := ui.NewCombobox()
-	settings.Append(settingsCatePicker, false)
+	settingsGeneral.Append(settingsCatePicker, true)
 	for _, sc := range utils.Conf.GetCategories() {
 		settingsCatePicker.Append(sc.Name)
 	}
-	// TODO: Improve label spacing, so it don't stick to the window / box border
+
+	settingsReset := ui.NewButton("Reset")
+	settingsGeneral.Append(settingsReset, false)
+	settingsReset.Disable()
+
+	settingsSave := ui.NewButton("Save")
+	settingsGeneral.Append(settingsSave, false)
+	settingsSave.Disable()
 
 	cp.Show()
 }
