@@ -117,20 +117,20 @@ func ControlPanel() {
 	network.Append("Address: ", address, true)
 	address.SetPadded(true)
 
-	adressIp1 := ui.NewSpinbox(0, 239)
-	address.Append(adressIp1, true)
+	addressIp1 := ui.NewSpinbox(0, 239)
+	address.Append(addressIp1, true)
 	address.Append(ui.NewLabel("."), false)
 
-	adressIp2 := ui.NewSpinbox(0, 255)
-	address.Append(adressIp2, true)
+	addressIp2 := ui.NewSpinbox(0, 255)
+	address.Append(addressIp2, true)
 	address.Append(ui.NewLabel("."), false)
 
-	adressIp3 := ui.NewSpinbox(0, 255)
-	address.Append(adressIp3, true)
+	addressIp3 := ui.NewSpinbox(0, 255)
+	address.Append(addressIp3, true)
 	address.Append(ui.NewLabel("."), false)
 
-	adressIp4 := ui.NewSpinbox(0, 255)
-	address.Append(adressIp4, true)
+	addressIp4 := ui.NewSpinbox(0, 255)
+	address.Append(addressIp4, true)
 
 	address.Append(ui.NewLabel("Port: "), false)
 
@@ -274,12 +274,12 @@ func (h PlayerListTableModelHandler) ColumnTypes(*ui.TableModel) []ui.TableValue
 	}
 }
 
-// NumRows Mutex should be lock before updating table content
+// NumRows Mutex should be locked before updating table content
 func (h PlayerListTableModelHandler) NumRows(*ui.TableModel) int {
 	return len(*playerListTableContent)
 }
 
-// CellValue Mutex should be lock before updating table content
+// CellValue Mutex should be locked before updating table content
 func (h PlayerListTableModelHandler) CellValue(_ *ui.TableModel, row, column int) ui.TableValue {
 	content := *playerListTableContent
 	switch column {
