@@ -29,7 +29,7 @@ func ControlPanel() {
 	tab.Append("Players", players)
 
 	search := ui.NewSearchEntry()
-	players.Append(players, false)
+	players.Append(search, false)
 	search.OnChanged(searchPlayer)
 
 	plist := ui.NewTable(&ui.TableParams{
@@ -105,9 +105,9 @@ func resetPlayerListTable() {
 	}
 	deleteQueue := *playerListTableContent
 	playerListTableContent = &deleteQueue
-	for sr := 0; sr < len(deleteQueue); sr++ {
-		del := len(deleteQueue)
-		deleteQueue = deleteQueue[0 : del-1]
+	for len(deleteQueue) > 0 {
+		del := len(deleteQueue) - 1
+		deleteQueue = deleteQueue[0:del]
 		playerListTableModel.RowDeleted(del)
 	}
 }
