@@ -11,6 +11,7 @@ var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
 	playerListTableContent = &Sessions
 	Result                 *ui.Label
+	userSearchNote         bool
 )
 
 func ControlPanel() {
@@ -34,9 +35,17 @@ func ControlPanel() {
 	searchbar.SetPadded(true)
 	players.Append(searchbar, false)
 
+	searchNote := ui.NewCheckbox("Search note")
+	searchbar.Append(searchNote, false)
+
 	search := ui.NewSearchEntry()
 	searchbar.Append(search, true)
 	search.OnChanged(searchPlayer)
+
+	searchNote.OnToggled(func(checkbox *ui.Checkbox) {
+		userSearchNote = checkbox.Checked()
+		searchPlayer(search)
+	})
 
 	Result = ui.NewLabel("")
 	Result.Hide()
@@ -79,7 +88,7 @@ func searchPlayer(entry *ui.Entry) {
 			if sk == "" {
 				continue
 			}
-			if strings.Contains(sp.Name(), sk) {
+			if strings.Contains(sp.Name(), sk) || (userSearchNote && strings.Contains(sp.Note, sk)) {
 				if _, ok := searched[index]; ok {
 					continue
 				}
