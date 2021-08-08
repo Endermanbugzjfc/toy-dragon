@@ -3,7 +3,9 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"github.com/pelletier/go-toml"
 	"github.com/skratchdot/open-golang/open"
+	"io/ioutil"
 	"math"
 	"path/filepath"
 	"server/utils"
@@ -12,23 +14,32 @@ import (
 )
 
 var (
-	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
-	playerListTableContent = &Sessions
-	originalConfig         utils.CustomConfig
-	PanelStatus            = "Control Panel"
+	playerListTableModel     = ui.NewTableModel(PlayerListTableModelHandler{})
+	playerListTableContent   = &Sessions
+	originalConfig           utils.CustomConfig
+	onTheFlightUpdateOptions []func()
+	PanelStatus              = "Control Panel"
 
+	cp            = ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
 	result        = ui.NewLabel("")
 	settingsReset = ui.NewButton("Reset")
 	settingsSave  = ui.NewButton("Save")
+	saveProg      = ui.NewProgressBar()
 
 	userSearchNote   bool
 	userSettingsCate *ui.Form
 )
 
 func ControlPanel() {
+	// Part 1: Check if UDP is forwarded
+	// Part 2: Check if TCP is forwarded
+	// Part 3: Forward / clear port
+	// Part 4: Marshal config data
+	// Part 5: Overwrite config file
+	const progPart = 1 / 5
+	saveProg.SetValue(progPart * 0)
 	originalConfig = *utils.Conf
 
-	cp := ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
 	cp.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
 		return true
@@ -94,6 +105,9 @@ func ControlPanel() {
 	tab.Append("Settings", settings)
 	tab.SetMargined(1, true)
 
+	saveProg.Hide()
+	settings.Append(saveProg, false)
+
 	settingsGeneral := ui.NewHorizontalBox()
 	settings.Append(settingsGeneral, false)
 	settingsGeneral.SetPadded(true)
@@ -106,9 +120,17 @@ func ControlPanel() {
 
 	settingsGeneral.Append(settingsReset, false)
 	settingsReset.Disable()
+	settingsReset.OnClicked(func(*ui.Button) {
+		for _, sf := range onTheFlightUpdateOptions {
+			sf()
+		}
+		settingsReset.Disable()
+		settingsSave.Disable()
+	})
 
 	settingsGeneral.Append(settingsSave, false)
 	settingsSave.Disable()
+	settingsSave.OnClicked(saveSettings)
 
 	dummy := ui.NewLabel("^^^ Please choose a setting category from the combobox above")
 	settings.Append(dummy, false)
@@ -180,7 +202,9 @@ func ControlPanel() {
 
 	srvName := ui.NewEntry()
 	srvCate.Append("Server name: ", srvName, true)
-	srvName.SetText(utils.Conf.Server.Name)
+	onTheFlyUpdateOption(func() {
+		srvName.SetText(utils.Conf.Server.Name)
+	})
 	srvName.OnChanged(func(srvName *ui.Entry) {
 		cp.SetTitle("[" + srvName.Text() + "] " + PanelStatus)
 		utils.Conf.Server.Name = srvName.Text()
@@ -342,6 +366,34 @@ func ControlPanel() {
 	})
 
 	cp.Show()
+}
+
+func saveSettings(*ui.Button) {
+	update := *utils.Conf
+	go func() {
+		data, err := toml.Marshal(update)
+		if err != nil {
+			ui.QueueMain(func() {
+				ui.MsgBoxError(cp, "Failed to save settings", err.Error())
+				configUpdate()
+			})
+		}
+		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
+			ui.QueueMain(func() {
+				ui.MsgBoxError(cp, "Failed to overwrite config file", err.Error())
+				configUpdate()
+			})
+		}
+		ui.QueueMain(func() {
+			originalConfig = update
+			configUpdate()
+		})
+	}()
+}
+
+func onTheFlyUpdateOption(f func()) {
+	onTheFlightUpdateOptions = append(onTheFlightUpdateOptions, f)
+	f()
 }
 
 func configUpdate() {
