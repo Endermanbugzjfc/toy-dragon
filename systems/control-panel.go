@@ -3,12 +3,14 @@ package systems
 import (
 	"fmt"
 	"github.com/andlabs/ui"
+	"strconv"
 	"strings"
 )
 
 var (
 	playerListTableModel   = ui.NewTableModel(PlayerListTableModelHandler{})
 	playerListTableContent = &Sessions
+	Result                 *ui.Label
 )
 
 func ControlPanel() {
@@ -28,9 +30,17 @@ func ControlPanel() {
 	players := ui.NewVerticalBox()
 	tab.Append("Players", players)
 
+	searchbar := ui.NewHorizontalBox()
+	searchbar.SetPadded(true)
+	players.Append(searchbar, false)
+
 	search := ui.NewSearchEntry()
-	players.Append(search, false)
+	searchbar.Append(search, true)
 	search.OnChanged(searchPlayer)
+
+	Result = ui.NewLabel("")
+	Result.Hide()
+	searchbar.Append(Result, false)
 
 	plist := ui.NewTable(&ui.TableParams{
 		Model:                         playerListTableModel,
@@ -96,6 +106,13 @@ func searchPlayer(entry *ui.Entry) {
 		for sps := range searched {
 			appendToQueue(Sessions[sps])
 		}
+	}
+
+	if entry.Text() == "" {
+		Result.Hide()
+	} else {
+		Result.Show()
+		Result.SetText(strconv.Itoa(len(searched)) + " results")
 	}
 }
 
