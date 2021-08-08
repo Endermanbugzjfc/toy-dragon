@@ -31,12 +31,12 @@ type CustomConfig struct {
 	World struct {
 		Name               string
 		Folder             string
-		MaximumChunkRadius int
 		SimulationDistance int
 	}
 	Player struct {
-		FaceCacheFolder string
-		SaveData        bool
+		MaximumChunkRadius int
+		SaveData           bool
+		Folder             string
 	}
 }
 
@@ -60,7 +60,8 @@ func (conf CustomConfig) ToServerConfig() server.Config {
 	sc.Server.QuitMessage = conf.Server.QuitMessage
 	sc.World.Name = conf.World.Name
 	sc.World.Folder = conf.World.Folder
-	sc.Players.MaximumChunkRadius = conf.World.MaximumChunkRadius
+	sc.Players.MaximumChunkRadius = conf.Player.MaximumChunkRadius
+	sc.Players.Folder = conf.Player.Folder
 	sc.World.SimulationDistance = conf.World.SimulationDistance
 
 	return sc
@@ -95,7 +96,6 @@ func DefaultConfig() CustomConfig {
 	conf.Server.Notification.PlayerChat = false
 	conf.Server.Notification.PlayerQuit = false
 	conf.Server.Notification.AlertSound = false
-	conf.Player.FaceCacheFolder = "faces"
 	return conf
 }
 
@@ -109,7 +109,8 @@ func (conf CustomConfig) FromServerConfig(sc server.Config) CustomConfig {
 	conf.Server.QuitMessage = sc.Server.QuitMessage
 	conf.World.Name = sc.World.Name
 	conf.World.Folder = sc.World.Folder
-	conf.World.MaximumChunkRadius = sc.Players.MaximumChunkRadius
+	conf.Player.MaximumChunkRadius = sc.Players.MaximumChunkRadius
+	conf.Player.Folder = sc.Players.Folder
 	conf.World.SimulationDistance = sc.World.SimulationDistance
 
 	return conf
