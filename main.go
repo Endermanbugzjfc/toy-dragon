@@ -28,7 +28,8 @@ func main() {
 	conf := utils.DefaultConfig()
 	utils.Conf = &conf
 	if err := conf.Load(); err != nil {
-		utils.Log.Fatal(err)
+		utils.Log.Error(err)
+		systems.NewProblem("Config unavailable", err, systems.ProblemSeverityFatal)
 	}
 
 	utils.Log.Infoln("Connecting to router...")
@@ -36,6 +37,7 @@ func main() {
 	d, err := upnp.Discover()
 	if err != nil {
 		utils.Log.Error(err)
+		systems.NewProblem("Router connection error", err, systems.ProblemSeverityGeneral)
 	}
 	utils.Router = d
 

@@ -170,6 +170,7 @@ func ControlPanel() {
 		const addressHelpLink = "https://pmmp.readthedocs.io/en/rtfd/faq/connecting/defaultrouteip.html"
 		if err := open.Start(addressHelpLink); err != nil {
 			ui.MsgBoxError(cp, "Control Panel Exception", "Failed to open "+addressHelpLink+" with your system default browser.\n\nThis exception does not affect anything in your DragonFly server, please consider open the link manually!\n\n"+err.Error())
+			NewProblem("System browser cannot be launched", err, ProblemSeverityTrivial)
 		}
 	})
 
@@ -388,7 +389,9 @@ func saveSettings(*ui.Button) {
 	var upnp bool
 	_, port, err := update.ExtractIpPort()
 	if err != nil {
+		utils.Log.Error(err)
 		ui.MsgBoxError(cp, "Invalid Address Format", "Failed to parse address string \""+update.Network.Address+"\", UPnP forward will not be enabled / disabled during this settings save task!\n\n"+err.Error())
+		NewProblem("Server address parse failed", err, ProblemSeverityTrivial)
 		saveProg.SetValue(saveProgressPart * 3)
 	} else if utils.Router == nil {
 		ui.MsgBoxError(cp, "UPnP forward will not be enabled / disabled", "Failed to connect to router")
@@ -402,26 +405,32 @@ func saveSettings(*ui.Button) {
 		data, err := toml.Marshal(update)
 		if err != nil {
 			ui.QueueMain(func() {
+				utils.Log.Error(err)
 				ui.MsgBoxError(cp, "Failed to save settings", err.Error())
 			})
+			NewProblem("Config data marshal failed", err, ProblemSeverityGeneral)
+			return
 		}
 		updateSaveProgress()
 		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			ui.QueueMain(func() {
+				utils.Log.Error(err)
 				ui.MsgBoxError(cp, "Failed to overwrite config file", err.Error())
 			})
+			NewProblem("Config data marshal failed", err, ProblemSeverityGeneral)
+			return
 		}
 		updateSaveProgress()
 		if upnp {
 			udp, err := utils.Router.IsForwardedUDP(port)
 			if err != nil {
-				PanelError(err)
+				NewProblem("UPnP forward check failed (UDP)", err, ProblemSeverityTrivial)
 				utils.Log.Error(err)
 			}
 			updateSaveProgress()
 			tcp, err := utils.Router.IsForwardedTCP(port)
 			if err != nil {
-				PanelError(err)
+				NewProblem("UPnP forward check failed (TCP)", err, ProblemSeverityTrivial)
 				utils.Log.Error(err)
 			}
 			updateSaveProgress()
@@ -432,7 +441,7 @@ func saveSettings(*ui.Button) {
 						ui.QueueMain(func() {
 							ui.MsgBoxError(cp, "Failed to establish UPnP forward", err.Error())
 						})
-						PanelError(err)
+						NewProblem("UPnP forward establish failed)", err, ProblemSeverityGeneral)
 						utils.Log.Error(err)
 					}
 				}
@@ -443,7 +452,7 @@ func saveSettings(*ui.Button) {
 						ui.QueueMain(func() {
 							ui.MsgBoxError(cp, "Failed to disable UPnP forward", err.Error())
 						})
-						PanelError(err)
+						NewProblem("UPnP forward disable failed)", err, ProblemSeverityGeneral)
 						utils.Log.Error(err)
 					}
 				}
@@ -458,9 +467,16 @@ func saveSettings(*ui.Button) {
 	}()
 }
 
-func PanelError(err error) {
-
+func NewProblem(desc string, err error, severity ProblemSeverity) {
 }
+
+type ProblemSeverity int
+
+const (
+	ProblemSeverityTrivial ProblemSeverity = iota
+	ProblemSeverityGeneral
+	ProblemSeverityFatal
+)
 
 func updateSaveProgress() {
 	ui.QueueMain(func() {
