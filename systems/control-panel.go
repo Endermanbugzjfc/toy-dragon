@@ -242,12 +242,8 @@ func ControlPanel() {
 		configUpdate()
 	})
 
-	joinQuit := ui.NewHorizontalBox()
-	srvCate.Append("Player join message: ", joinQuit, true)
-	joinQuit.SetPadded(true)
-
 	joinMsg := ui.NewEntry()
-	joinQuit.Append(joinMsg, true)
+	srvCate.Append("Player join message: ", joinMsg, true)
 	initSettingsOption(func() {
 		joinMsg.SetText(utils.Conf.Server.JoinMessage)
 		if utils.Srv == nil {
@@ -263,19 +259,21 @@ func ControlPanel() {
 		configUpdate()
 	})
 
-	joinQuit.Append(ui.NewLabel("Player quit message: "), false)
+	quitMsg := ui.NewHorizontalBox()
+	srvCate.Append("Player quit message: ", quitMsg, true)
+	quitMsg.SetPadded(true)
 
-	quitMsg := ui.NewEntry()
-	joinQuit.Append(quitMsg, true)
+	quitMsgEntry := ui.NewEntry()
+	quitMsg.Append(quitMsgEntry, true)
 	initSettingsOption(func() {
-		quitMsg.SetText(utils.Conf.Server.QuitMessage)
+		quitMsgEntry.SetText(utils.Conf.Server.QuitMessage)
 		if utils.Srv == nil {
 			return
 		}
 		utils.Srv.JoinMessage(utils.Conf.Server.QuitMessage)
 	})
-	quitMsg.OnChanged(func(quitMsg *ui.Entry) {
-		utils.Conf.Server.QuitMessage = quitMsg.Text()
+	quitMsgEntry.OnChanged(func(quitMsgEntry *ui.Entry) {
+		utils.Conf.Server.QuitMessage = quitMsgEntry.Text()
 		if utils.Srv != nil {
 			utils.Srv.QuitMessage(utils.Conf.Server.QuitMessage)
 		}
@@ -283,13 +281,13 @@ func ControlPanel() {
 	})
 
 	joinQuitHelp := ui.NewButton("?")
-	joinQuit.Append(joinQuitHelp, false)
+	quitMsg.Append(joinQuitHelp, false)
 	joinQuitHelp.OnClicked(func(*ui.Button) {
 		ui.MsgBox(cp, "Dynamic Tag", "\"%v\" will be replaced with the target player's name.\n\n(This dynamic tag only applies to player join / quit messages)")
 	})
 
 	ntfJoin := ui.NewCheckbox("")
-	srvCate.Append("Player join notification: ", ntfJoin, false)
+	srvCate.Append("Player join notification: ", ntfJoin, true)
 	initSettingsOption(func() {
 		ntfJoin.SetChecked(utils.Conf.Server.Notification.PlayerJoin)
 	})
@@ -299,7 +297,7 @@ func ControlPanel() {
 	})
 
 	ntfChat := ui.NewCheckbox("")
-	srvCate.Append("Player chat notification: ", ntfChat, false)
+	srvCate.Append("Player chat notification: ", ntfChat, true)
 	initSettingsOption(func() {
 		ntfChat.SetChecked(utils.Conf.Server.Notification.PlayerChat)
 	})
@@ -309,7 +307,7 @@ func ControlPanel() {
 	})
 
 	ntfQuit := ui.NewCheckbox("")
-	srvCate.Append("Player quit notification: ", ntfQuit, false)
+	srvCate.Append("Player quit notification: ", ntfQuit, true)
 	initSettingsOption(func() {
 		ntfQuit.SetChecked(utils.Conf.Server.Notification.PlayerQuit)
 	})
@@ -319,7 +317,7 @@ func ControlPanel() {
 	})
 
 	ntfSound := ui.NewCheckbox("")
-	srvCate.Append("Notification sound notification: ", ntfSound, false)
+	srvCate.Append("Notification alert sounds: ", ntfSound, true)
 	initSettingsOption(func() {
 		ntfSound.SetChecked(utils.Conf.Server.Notification.AlertSound)
 	})
