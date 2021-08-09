@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 type CustomConfig struct {
@@ -65,6 +67,28 @@ func (conf CustomConfig) ToServerConfig() server.Config {
 	sc.World.SimulationDistance = conf.World.SimulationDistance
 
 	return sc
+}
+
+func (conf CustomConfig) ExtractIpPort() (ip string, port uint16, err error) {
+	ipPort := strings.Split(conf.Network.Address, ":")
+	if len(ipPort) != 2 {
+		port = 19132
+	} else {
+		parsed, err1 := strconv.Atoi(ipPort[1])
+		if err1 != nil {
+			err = err1
+			port = 19132
+		} else {
+			port = uint16(parsed)
+		}
+	}
+	ip = ipPort[0]
+	if ip == "" {
+		ip = "0.0.0.0"
+	} else if ip == "localhost" {
+		ip = "127.0.0.1"
+	}
+	return
 }
 
 func (conf *CustomConfig) Load() error {

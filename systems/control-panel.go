@@ -21,11 +21,12 @@ var (
 	onTheFlightUpdateOptions []func()
 	PanelStatus              = "Control Panel"
 
-	cp            *ui.Window
-	result        = ui.NewLabel("")
-	settingsReset = ui.NewButton("Reset")
-	settingsSave  = ui.NewButton("Save")
-	saveProg      = ui.NewProgressBar()
+	cp              *ui.Window
+	result          = ui.NewLabel("")
+	settingsReset   = ui.NewButton("Reset")
+	settingsSave    = ui.NewButton("Save")
+	saveProg        = ui.NewProgressBar()
+	upnpDescription = ui.NewEntry()
 
 	userSearchNote   bool
 	userSettingsCate *ui.Form
@@ -181,7 +182,6 @@ func ControlPanel() {
 
 	upnp.Append(ui.NewLabel("Description: "), false)
 
-	upnpDescription := ui.NewEntry()
 	upnp.Append(upnpDescription, true)
 
 	upnpHelp := ui.NewButton("?")
@@ -365,13 +365,14 @@ func ControlPanel() {
 	cp.Show()
 }
 
+const saveProgressPart = 100 / 5
+
 func saveSettings(*ui.Button) {
 	// Part 1: Marshal config data
 	// Part 2: Overwrite config file
 	// Part 3: Check if UDP is forwarded
 	// Part 4: Check if TCP is forwarded
 	// Part 5: Forward / clear port
-	const progressPart = 100 / 5
 
 	update := *utils.Conf
 	originalConfig = update
@@ -382,7 +383,20 @@ func saveSettings(*ui.Button) {
 	settingsSave.Hide()
 	settingsReset.Hide()
 
-	saveProg.SetValue(progressPart * 0)
+	upnpD := upnpDescription.Text()
+
+	var upnp bool
+	_, port, err := update.ExtractIpPort()
+	if err != nil {
+		ui.MsgBoxError(cp, "Invalid Address Format", "Failed to parse address string \""+update.Network.Address+"\", UPnP forward will not be enabled / disabled during this settings save task!\n\n"+err.Error())
+		saveProg.SetValue(saveProgressPart * 3)
+	} else if utils.Router == nil {
+		ui.MsgBoxError(cp, "UPnP forward will not be enabled / disabled", "Failed to connect to router")
+		saveProg.SetValue(saveProgressPart * 3)
+	} else {
+		saveProg.SetValue(0)
+		upnp = true
+	}
 	saveProg.Show()
 	go func() {
 		data, err := toml.Marshal(update)
@@ -391,17 +405,50 @@ func saveSettings(*ui.Button) {
 				ui.MsgBoxError(cp, "Failed to save settings", err.Error())
 			})
 		}
-		ui.QueueMain(func() {
-			saveProg.SetValue(progressPart * 1)
-		})
+		updateSaveProgress()
 		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
 			ui.QueueMain(func() {
 				ui.MsgBoxError(cp, "Failed to overwrite config file", err.Error())
 			})
 		}
-		ui.QueueMain(func() {
-			saveProg.SetValue(progressPart * 5)
-		})
+		updateSaveProgress()
+		if upnp {
+			udp, err := utils.Router.IsForwardedUDP(port)
+			if err != nil {
+				PanelError(err)
+				utils.Log.Error(err)
+			}
+			updateSaveProgress()
+			tcp, err := utils.Router.IsForwardedTCP(port)
+			if err != nil {
+				PanelError(err)
+				utils.Log.Error(err)
+			}
+			updateSaveProgress()
+			if update.Network.UPNPForward {
+				if !(udp || tcp) {
+					err := utils.Router.Forward(port, upnpD)
+					if err != nil {
+						ui.QueueMain(func() {
+							ui.MsgBoxError(cp, "Failed to establish UPnP forward", err.Error())
+						})
+						PanelError(err)
+						utils.Log.Error(err)
+					}
+				}
+			} else {
+				if udp || tcp {
+					err := utils.Router.Clear(port)
+					if err != nil {
+						ui.QueueMain(func() {
+							ui.MsgBoxError(cp, "Failed to disable UPnP forward", err.Error())
+						})
+						PanelError(err)
+						utils.Log.Error(err)
+					}
+				}
+			}
+		}
 		time.Sleep(time.Second)
 		ui.QueueMain(func() {
 			saveProg.Hide()
@@ -409,6 +456,16 @@ func saveSettings(*ui.Button) {
 			settingsReset.Show()
 		})
 	}()
+}
+
+func PanelError(err error) {
+
+}
+
+func updateSaveProgress() {
+	ui.QueueMain(func() {
+		saveProg.SetValue(saveProg.Value() + saveProgressPart)
+	})
 }
 
 func onTheFlyUpdateOption(f func()) {
