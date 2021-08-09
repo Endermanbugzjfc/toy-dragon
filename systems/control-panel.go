@@ -11,6 +11,7 @@ import (
 	"server/utils"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -20,7 +21,7 @@ var (
 	onTheFlightUpdateOptions []func()
 	PanelStatus              = "Control Panel"
 
-	cp            = ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
+	cp            *ui.Window
 	result        = ui.NewLabel("")
 	settingsReset = ui.NewButton("Reset")
 	settingsSave  = ui.NewButton("Save")
@@ -31,15 +32,9 @@ var (
 )
 
 func ControlPanel() {
-	// Part 1: Check if UDP is forwarded
-	// Part 2: Check if TCP is forwarded
-	// Part 3: Forward / clear port
-	// Part 4: Marshal config data
-	// Part 5: Overwrite config file
-	const progPart = 1 / 5
-	saveProg.SetValue(progPart * 0)
 	originalConfig = *utils.Conf
 
+	cp = ui.NewWindow("["+utils.Conf.Server.Name+"] "+PanelStatus, 640, 480, true)
 	cp.OnClosing(func(*ui.Window) bool {
 		ui.Quit()
 		return true
@@ -105,9 +100,6 @@ func ControlPanel() {
 	tab.Append("Settings", settings)
 	tab.SetMargined(1, true)
 
-	saveProg.Hide()
-	settings.Append(saveProg, false)
-
 	settingsGeneral := ui.NewHorizontalBox()
 	settings.Append(settingsGeneral, false)
 	settingsGeneral.SetPadded(true)
@@ -121,6 +113,7 @@ func ControlPanel() {
 	settingsGeneral.Append(settingsReset, false)
 	settingsReset.Disable()
 	settingsReset.OnClicked(func(*ui.Button) {
+		*utils.Conf = originalConfig
 		for _, sf := range onTheFlightUpdateOptions {
 			sf()
 		}
@@ -131,6 +124,9 @@ func ControlPanel() {
 	settingsGeneral.Append(settingsSave, false)
 	settingsSave.Disable()
 	settingsSave.OnClicked(saveSettings)
+
+	saveProg.Hide()
+	settingsGeneral.Append(saveProg, false)
 
 	dummy := ui.NewLabel("^^^ Please choose a setting category from the combobox above")
 	settings.Append(dummy, false)
@@ -204,6 +200,7 @@ func ControlPanel() {
 	srvCate.Append("Server name: ", srvName, true)
 	onTheFlyUpdateOption(func() {
 		srvName.SetText(utils.Conf.Server.Name)
+		cp.SetTitle("[" + srvName.Text() + "] " + PanelStatus)
 	})
 	srvName.OnChanged(func(srvName *ui.Entry) {
 		cp.SetTitle("[" + srvName.Text() + "] " + PanelStatus)
@@ -369,24 +366,47 @@ func ControlPanel() {
 }
 
 func saveSettings(*ui.Button) {
+	// Part 1: Marshal config data
+	// Part 2: Overwrite config file
+	// Part 3: Check if UDP is forwarded
+	// Part 4: Check if TCP is forwarded
+	// Part 5: Forward / clear port
+	const progressPart = 100 / 5
+
 	update := *utils.Conf
+	originalConfig = update
+
+	settingsSave.Disable()
+	settingsReset.Disable()
+
+	settingsSave.Hide()
+	settingsReset.Hide()
+
+	saveProg.SetValue(progressPart * 0)
+	saveProg.Show()
 	go func() {
 		data, err := toml.Marshal(update)
 		if err != nil {
 			ui.QueueMain(func() {
 				ui.MsgBoxError(cp, "Failed to save settings", err.Error())
-				configUpdate()
-			})
-		}
-		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
-			ui.QueueMain(func() {
-				ui.MsgBoxError(cp, "Failed to overwrite config file", err.Error())
-				configUpdate()
 			})
 		}
 		ui.QueueMain(func() {
-			originalConfig = update
-			configUpdate()
+			saveProg.SetValue(progressPart * 1)
+		})
+		if err := ioutil.WriteFile("config.toml", data, 0644); err != nil {
+			ui.QueueMain(func() {
+				ui.MsgBoxError(cp, "Failed to overwrite config file", err.Error())
+			})
+		}
+		ui.QueueMain(func() {
+			saveProg.SetValue(progressPart * 5)
+		})
+		time.Sleep(time.Second)
+		ui.QueueMain(func() {
+			saveProg.Hide()
+			settingsSave.Show()
+			settingsReset.Show()
 		})
 	}()
 }
