@@ -283,7 +283,7 @@ func ControlPanel() {
 	joinQuitHelp := ui.NewButton("?")
 	quitMsg.Append(joinQuitHelp, false)
 	joinQuitHelp.OnClicked(func(*ui.Button) {
-		ui.MsgBox(cp, "Dynamic Tag", "\"%v\" will be replaced with the target player's name.\n\n(This dynamic tag only applies to player join / quit messages)")
+		ui.MsgBox(cp, "Placeholder", "Placeholder \"%v\" will be replaced with the target player's name.\n\n(This only applies to player join / quit messages)")
 	})
 
 	ntfJoin := ui.NewCheckbox("")
