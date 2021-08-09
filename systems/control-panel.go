@@ -133,6 +133,8 @@ func ControlPanel() {
 	settings.Append(dummy, false)
 
 	// Network category
+
+	// TODO: Disable after server start
 	network := ui.NewForm()
 	network.Hide()
 	settings.Append(network, true)
@@ -172,6 +174,26 @@ func ControlPanel() {
 			ui.MsgBoxError(cp, "Control Panel Exception", "Failed to open "+addressHelpLink+" with your system default browser.\n\nThis exception does not affect anything in your DragonFly server, please consider open the link manually!\n\n"+err.Error())
 			NewProblem("System browser cannot be launched", err, ProblemSeverityTrivial)
 		}
+	})
+
+	initSettingsOption(func() {
+		ip1, ip2, ip3, ip4, err, port, err2 := utils.Conf.ExtractAddress()
+		if err != nil {
+			return
+		}
+		if err != nil {
+			utils.Log.Error(err)
+			NewProblem("Server IP parse failed", err, ProblemSeverityTrivial)
+		}
+		if err2 != nil {
+			utils.Log.Error(err2)
+			NewProblem("Server port parse failed", err, ProblemSeverityTrivial)
+		}
+		addressIp1.SetValue(int(ip1))
+		addressIp2.SetValue(int(ip2))
+		addressIp3.SetValue(int(ip3))
+		addressIp4.SetValue(int(ip4))
+		addressPortEntry.SetValue(int(port))
 	})
 
 	upnp := ui.NewHorizontalBox()

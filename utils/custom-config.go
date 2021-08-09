@@ -91,6 +91,23 @@ func (conf CustomConfig) ExtractIpPort() (ip string, port uint16, err error) {
 	return
 }
 
+func (conf CustomConfig) ExtractAddress() (ip1, ip2, ip3, ip4 uint8, ipErr error, port uint16, portErr error) {
+	ip, port, err := conf.ExtractIpPort()
+	nodes := strings.Split(ip, ".")
+	if len(nodes) != 4 {
+		return 0, 0, 0, 0, fmt.Errorf("unexpected nodes count %v in IP string, expected 4", len(nodes)), port, err
+	}
+	var parsed [4]uint8
+	for index, sn := range nodes {
+		r, err1 := strconv.Atoi(sn)
+		if err1 != nil {
+			return 0, 0, 0, 0, err1, port, err
+		}
+		parsed[index] = uint8(r)
+	}
+	return parsed[0], parsed[1], parsed[2], parsed[3], nil, port, err
+}
+
 func (conf *CustomConfig) Load() error {
 	if _, err := os.Stat("config.toml"); os.IsNotExist(err) {
 		data, err := toml.Marshal(conf)
