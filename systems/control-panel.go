@@ -460,7 +460,8 @@ func ControlPanel() {
 
 func addressEntryChanged(*ui.Spinbox) {
 	var address string
-	if addressIp1.Value() == 0 && addressIp2.Value() == 0 && addressIp3.Value() == 0 && addressIp4.Value() == 0 {
+	// Hack, credit to SanderTV
+	if addressIp1.Value()-addressIp2.Value()-addressIp3.Value()-addressIp4.Value() == 0 {
 		address = ":" + strconv.Itoa(addressPortEntry.Value())
 	} else {
 		address = fmt.Sprintf("%v.%v.%v.%v:%v", addressIp1.Value(), addressIp2.Value(), addressIp3.Value(), addressIp4.Value(), addressPortEntry.Value())
