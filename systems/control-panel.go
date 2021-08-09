@@ -199,7 +199,7 @@ func ControlPanel() {
 
 	srvName := ui.NewEntry()
 	srvCate.Append("Server name: ", srvName, true)
-	onTheFlyUpdateOption(func() {
+	initSettingsOption(func() {
 		srvName.SetText(utils.Conf.Server.Name)
 		cp.SetTitle("[" + srvName.Text() + "] " + PanelStatus)
 	})
@@ -209,27 +209,38 @@ func ControlPanel() {
 		configUpdate()
 	})
 
+	// TODO: Disable after server start
 	maxPlayers := ui.NewSpinbox(0, math.MaxInt32) // TODO: Add help
 	srvCate.Append("Maximum players count: ", maxPlayers, true)
-	maxPlayers.SetValue(utils.Conf.Server.MaximumPlayers)
+	initSettingsOption(func() {
+		maxPlayers.SetValue(utils.Conf.Server.MaximumPlayers)
+	})
 	maxPlayers.OnChanged(func(maxPlayers *ui.Spinbox) {
-		SessionsMu.RLock()
-		defer SessionsMu.RUnlock()
-		sessionsCount := len(Sessions)
-		if maxPlayers.Value() < sessionsCount {
-			ui.MsgBoxError(cp, "Cannot reduce maximum players count", "The maximum players count you just set is smaller than the online players count! Please kick some players out before doing this.")
-			maxPlayers.SetValue(sessionsCount)
-			return
-		}
 		utils.Conf.Server.MaximumPlayers = maxPlayers.Value()
 		configUpdate()
 	})
 
 	shutMsg := ui.NewEntry()
 	srvCate.Append("Server shutdown kick message: ", shutMsg, true)
+	initSettingsOption(func() {
+		shutMsg.SetText(utils.Conf.Server.ShutdownMessage)
+	})
+	shutMsg.OnChanged(func(entry *ui.Entry) {
+		utils.Conf.Server.ShutdownMessage = entry.Text()
+		configUpdate()
+	})
 
 	auth := ui.NewCheckbox("")
+
+	// TODO: Disable after server start
 	srvCate.Append("Require XBox authentication: ", auth, true)
+	initSettingsOption(func() {
+		auth.SetChecked(utils.Conf.Server.AuthEnabled)
+	})
+	auth.OnToggled(func(auth *ui.Checkbox) {
+		utils.Conf.Server.AuthEnabled = auth.Checked()
+		configUpdate()
+	})
 
 	joinQuit := ui.NewHorizontalBox()
 	srvCate.Append("Player join message: ", joinQuit, true)
@@ -237,11 +248,39 @@ func ControlPanel() {
 
 	joinMsg := ui.NewEntry()
 	joinQuit.Append(joinMsg, true)
+	initSettingsOption(func() {
+		joinMsg.SetText(utils.Conf.Server.JoinMessage)
+		if utils.Srv == nil {
+			return
+		}
+		utils.Srv.JoinMessage(utils.Conf.Server.JoinMessage)
+	})
+	joinMsg.OnChanged(func(joinMsg *ui.Entry) {
+		utils.Conf.Server.JoinMessage = joinMsg.Text()
+		if utils.Srv != nil {
+			utils.Srv.JoinMessage(utils.Conf.Server.JoinMessage)
+		}
+		configUpdate()
+	})
 
 	joinQuit.Append(ui.NewLabel("Player quit message: "), false)
 
 	quitMsg := ui.NewEntry()
 	joinQuit.Append(quitMsg, true)
+	initSettingsOption(func() {
+		quitMsg.SetText(utils.Conf.Server.QuitMessage)
+		if utils.Srv == nil {
+			return
+		}
+		utils.Srv.JoinMessage(utils.Conf.Server.QuitMessage)
+	})
+	quitMsg.OnChanged(func(quitMsg *ui.Entry) {
+		utils.Conf.Server.QuitMessage = quitMsg.Text()
+		if utils.Srv != nil {
+			utils.Srv.QuitMessage(utils.Conf.Server.QuitMessage)
+		}
+		configUpdate()
+	})
 
 	joinQuitHelp := ui.NewButton("?")
 	joinQuit.Append(joinQuitHelp, false)
@@ -251,15 +290,43 @@ func ControlPanel() {
 
 	ntfJoin := ui.NewCheckbox("")
 	srvCate.Append("Player join notification: ", ntfJoin, false)
+	initSettingsOption(func() {
+		ntfJoin.SetChecked(utils.Conf.Server.Notification.PlayerJoin)
+	})
+	ntfJoin.OnToggled(func(ntfJoin *ui.Checkbox) {
+		utils.Conf.Server.Notification.PlayerJoin = ntfJoin.Checked()
+		configUpdate()
+	})
 
 	ntfChat := ui.NewCheckbox("")
 	srvCate.Append("Player chat notification: ", ntfChat, false)
+	initSettingsOption(func() {
+		ntfChat.SetChecked(utils.Conf.Server.Notification.PlayerChat)
+	})
+	ntfChat.OnToggled(func(ntfChat *ui.Checkbox) {
+		utils.Conf.Server.Notification.PlayerChat = ntfChat.Checked()
+		configUpdate()
+	})
 
 	ntfQuit := ui.NewCheckbox("")
 	srvCate.Append("Player quit notification: ", ntfQuit, false)
+	initSettingsOption(func() {
+		ntfQuit.SetChecked(utils.Conf.Server.Notification.PlayerQuit)
+	})
+	ntfQuit.OnToggled(func(ntfQuit *ui.Checkbox) {
+		utils.Conf.Server.Notification.PlayerQuit = ntfQuit.Checked()
+		configUpdate()
+	})
 
 	ntfSound := ui.NewCheckbox("")
 	srvCate.Append("Notification sound notification: ", ntfSound, false)
+	initSettingsOption(func() {
+		ntfSound.SetChecked(utils.Conf.Server.Notification.AlertSound)
+	})
+	ntfSound.OnToggled(func(ntfSound *ui.Checkbox) {
+		utils.Conf.Server.Notification.AlertSound = ntfSound.Checked()
+		configUpdate()
+	})
 
 	// World category
 	wrd := ui.NewForm()
@@ -484,7 +551,7 @@ func updateSaveProgress() {
 	})
 }
 
-func onTheFlyUpdateOption(f func()) {
+func initSettingsOption(f func()) {
 	onTheFlightUpdateOptions = append(onTheFlightUpdateOptions, f)
 	f()
 }
