@@ -21,12 +21,17 @@ var (
 	onTheFlightUpdateOptions []func()
 	PanelStatus              = "Control Panel"
 
-	cp              *ui.Window
-	result          = ui.NewLabel("")
-	settingsReset   = ui.NewButton("Reset")
-	settingsSave    = ui.NewButton("Save")
-	saveProg        = ui.NewProgressBar()
-	upnpDescription = ui.NewEntry()
+	cp               *ui.Window
+	result           = ui.NewLabel("")
+	settingsReset    = ui.NewButton("Reset")
+	settingsSave     = ui.NewButton("Save")
+	saveProg         = ui.NewProgressBar()
+	upnpDescription  = ui.NewEntry()
+	addressIp1       = ui.NewSpinbox(0, 239)
+	addressIp2       = ui.NewSpinbox(0, 255)
+	addressIp3       = ui.NewSpinbox(0, 255)
+	addressIp4       = ui.NewSpinbox(0, 255)
+	addressPortEntry = ui.NewSpinbox(0, 65535)
 
 	userSearchNote   bool
 	userSettingsCate *ui.Form
@@ -144,27 +149,27 @@ func ControlPanel() {
 	network.Append("Address: ", address, true)
 	address.SetPadded(true)
 
-	addressIp1 := ui.NewSpinbox(0, 239)
 	address.Append(addressIp1, true)
 	address.Append(ui.NewLabel("."), false)
+	addressIp1.OnChanged(addressEntryChanged)
 
-	addressIp2 := ui.NewSpinbox(0, 255)
 	address.Append(addressIp2, true)
 	address.Append(ui.NewLabel("."), false)
+	addressIp2.OnChanged(addressEntryChanged)
 
-	addressIp3 := ui.NewSpinbox(0, 255)
 	address.Append(addressIp3, true)
 	address.Append(ui.NewLabel("."), false)
+	addressIp3.OnChanged(addressEntryChanged)
 
-	addressIp4 := ui.NewSpinbox(0, 255)
 	address.Append(addressIp4, true)
+	addressIp4.OnChanged(addressEntryChanged)
 
 	addressPort := ui.NewHorizontalBox()
 	network.Append("Port: ", addressPort, true)
 	addressPort.SetPadded(true)
 
-	addressPortEntry := ui.NewSpinbox(0, 65535)
 	addressPort.Append(addressPortEntry, true)
+	addressPortEntry.OnChanged(addressEntryChanged)
 
 	addressHelp := ui.NewButton("?")
 	addressPort.Append(addressHelp, false)
@@ -451,6 +456,16 @@ func ControlPanel() {
 	})
 
 	cp.Show()
+}
+
+func addressEntryChanged(*ui.Spinbox) {
+	var address string
+	if addressIp1.Value() == 0 && addressIp2.Value() == 0 && addressIp3.Value() == 0 && addressIp4.Value() == 0 {
+		address = ":" + strconv.Itoa(addressPortEntry.Value())
+	} else {
+		address = fmt.Sprintf("%v.%v.%v.%v:%v", addressIp1.Value(), addressIp2.Value(), addressIp3.Value(), addressIp4.Value(), addressPortEntry.Value())
+	}
+	utils.Conf.Network.Address = address
 }
 
 const saveProgressPart = 100 / 5
