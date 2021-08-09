@@ -23,6 +23,8 @@ func main() {
 	utils.Log.Formatter = &logrus.TextFormatter{ForceColors: true}
 	utils.Log.Level = logrus.DebugLevel
 
+	fmt.Println("Toy Dragon EPICDL by EndermanbugZJFC | github.com/Endermanbugzjfc/ToyDragon")
+
 	conf := utils.DefaultConfig()
 	utils.Conf = &conf
 	if err := conf.Load(); err != nil {
