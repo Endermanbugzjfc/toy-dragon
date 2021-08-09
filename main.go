@@ -32,12 +32,14 @@ func main() {
 
 	utils.Log.Infoln("Connecting to router...")
 
-	d, err := upnp.Discover()
-	if err != nil {
-		utils.Log.Error(err)
-		systems.NewProblem("Router connection error", err, systems.ProblemSeverityGeneral)
-	}
-	utils.Router = d
+	go func() {
+		d, err := upnp.Discover()
+		if err != nil {
+			utils.Log.Error(err)
+			systems.NewProblem("Router connection error", err, systems.ProblemSeverityGeneral)
+		}
+		utils.Router = d
+	}()
 
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
