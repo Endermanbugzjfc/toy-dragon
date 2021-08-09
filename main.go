@@ -29,6 +29,14 @@ func main() {
 		utils.Log.Fatal(err)
 	}
 
+	utils.Log.Infoln("Connecting to router...")
+
+	d, err := upnp.Discover()
+	if err != nil {
+		utils.Log.Error(err)
+	}
+	utils.Router = d
+
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
 
 	log.Fatalln(ui.Main(systems.ControlPanel))
