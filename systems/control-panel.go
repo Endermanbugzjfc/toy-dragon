@@ -53,9 +53,17 @@ func ControlPanel() {
 	tab := ui.NewTab()
 	cp.SetChild(tab)
 
+	// Dashboard tab
+	dashboard := ui.NewVerticalBox()
+	tab.Append("Dashboard", dashboard)
+	tab.SetMargined(0, true)
+	dashboard.SetPadded(true)
+	// TODO: Add histograms
+
 	// Players tab
 	players := ui.NewVerticalBox()
 	tab.Append("Players", players)
+	players.SetPadded(true)
 
 	searchbar := ui.NewHorizontalBox()
 	searchbar.SetPadded(true)
@@ -104,7 +112,7 @@ func ControlPanel() {
 	settings := ui.NewVerticalBox()
 	settings.SetPadded(true)
 	tab.Append("Settings", settings)
-	tab.SetMargined(1, true)
+	tab.SetMargined(2, true)
 
 	settingsGeneral := ui.NewHorizontalBox()
 	settings.Append(settingsGeneral, false)
