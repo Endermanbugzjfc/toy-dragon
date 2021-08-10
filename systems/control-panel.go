@@ -415,6 +415,7 @@ func ControlPanel() {
 	})
 	tickRadiusEntry.OnChanged(func(tickRadiusEntry *ui.Spinbox) {
 		utils.Conf.World.SimulationDistance = tickRadiusEntry.Value()
+		configUpdate()
 	})
 
 	tickRadiusHelp := ui.NewButton("?")
