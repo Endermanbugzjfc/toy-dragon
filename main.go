@@ -2,15 +2,10 @@ package main
 
 import (
 	"github.com/andlabs/ui"
-	"github.com/df-mc/dragonfly/server"
-	"github.com/df-mc/dragonfly/server/cmd"
 	"github.com/df-mc/dragonfly/server/player/chat"
-	"github.com/df-mc/dragonfly/server/player/skin"
-	"github.com/gen2brain/beeep"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/NebulousLabs/go-upnp"
 	"log"
-	servercmds "server/cmds"
 	"server/systems"
 	"server/utils"
 )
@@ -93,35 +88,4 @@ func startServer() {
 		}(player.Skin(), utils.Conf.Player.FaceCacheFolder, player.Name())
 		player.Handle(&systems.EventListener{Player: player})
 	}
-}
-
-func upnpFoward() {
-	utils.Log.Infoln("Forwarding UPNP...")
-
-	// connect to router
-	d, err := upnp.Discover()
-	if err != nil {
-		utils.Log.Fatal(err)
-	}
-
-	// discover external IP
-	ip, err := d.ExternalIP()
-	if err != nil {
-		utils.Log.Fatal(err)
-	}
-	utils.Log.Infoln("UPNP forward succeeds, your external IP is:", ip)
-
-	// forward a port
-	err = d.Forward(19132, "upnp test")
-	if err != nil {
-		utils.Log.Fatal(err)
-	}
-
-	defer func(d *upnp.IGD, port uint16) {
-		err := d.Clear(port)
-		if err != nil {
-			utils.Log.Fatal(err)
-		}
-	}(d, 19132)
-
-}
+}*/
