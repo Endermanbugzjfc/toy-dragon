@@ -567,6 +567,7 @@ func saveSettings(*ui.Button) {
 				}
 			}
 		}
+		updateSaveProgress()
 		time.Sleep(time.Second)
 		ui.QueueMain(func() {
 			saveProg.Hide()
