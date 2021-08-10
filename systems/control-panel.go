@@ -461,12 +461,11 @@ func ControlPanel() {
 func addressEntryChanged(*ui.Spinbox) {
 	var address string
 	// Hack, credit to SanderTV
-	if addressIp1.Value()-addressIp2.Value()-addressIp3.Value()-addressIp4.Value() == 0 {
-		address = ":" + strconv.Itoa(addressPortEntry.Value())
-	} else {
-		address = fmt.Sprintf("%v.%v.%v.%v:%v", addressIp1.Value(), addressIp2.Value(), addressIp3.Value(), addressIp4.Value(), addressPortEntry.Value())
+	if addressIp1.Value()-addressIp2.Value()-addressIp3.Value()-addressIp4.Value() != 0 {
+		address = fmt.Sprintf("%v.%v.%v.%v", addressIp1.Value(), addressIp2.Value(), addressIp3.Value(), addressIp4.Value())
 	}
-	utils.Conf.Network.Address = address
+	utils.Conf.Network.Address = address + ":" + strconv.Itoa(addressPortEntry.Value())
+	configUpdate()
 }
 
 const saveProgressPart = 100 / 5
