@@ -34,7 +34,7 @@ func (Console) Position() mgl64.Vec3 {
 }
 
 func (c Console) World() *world.World {
-	return utils.Serverobj.World()
+	return utils.Srv.World()
 }
 
 func ConsoleCommandWatcher() {
