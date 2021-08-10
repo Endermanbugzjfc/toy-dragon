@@ -207,6 +207,13 @@ func ControlPanel() {
 
 	upnpSwitch := ui.NewCheckbox("")
 	upnp.Append(upnpSwitch, false)
+	initSettingsOption(func() {
+		upnpSwitch.SetChecked(utils.Conf.Network.UPNPForward)
+	})
+	upnpSwitch.OnToggled(func(upnpSwitch *ui.Checkbox) {
+		utils.Conf.Network.UPNPForward = upnpSwitch.Checked()
+		configUpdate()
+	})
 
 	upnp.Append(ui.NewLabel("Description: "), false)
 
