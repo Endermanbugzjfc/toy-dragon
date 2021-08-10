@@ -32,8 +32,10 @@ func main() {
 		if err != nil {
 			utils.Log.Error(err)
 			systems.NewProblem("Router connection error", err, systems.ProblemSeverityGeneral)
+			return
 		}
 		utils.Router = d
+		utils.Log.Println("Successfully connected to router")
 	}()
 
 	cmd.Register(cmd.New("kick", "Kick someone epically.", []string{"kickgui"}, servercmds.Kick{}))
