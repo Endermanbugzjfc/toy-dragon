@@ -522,16 +522,14 @@ func saveSettings(*ui.Button) {
 
 	var upnp bool
 	_, port, err := update.ExtractIpPort()
+	saveProg.SetValue(0)
 	if err != nil {
 		utils.Log.Error(err)
 		ui.MsgBoxError(cp, "Invalid Address Format", "Failed to parse address string \""+update.Network.Address+"\", UPnP forward will not be enabled / disabled during this settings save task!\n\n"+err.Error())
 		NewProblem("Server address parse failed", err, ProblemSeverityTrivial)
-		saveProg.SetValue(saveProgressPart * 3)
 	} else if utils.Router == nil {
 		ui.MsgBoxError(cp, "UPnP forward will not be enabled / disabled", "Failed to connect to router")
-		saveProg.SetValue(saveProgressPart * 3)
 	} else {
-		saveProg.SetValue(0)
 		upnp = true
 	}
 	saveProg.Show()
@@ -591,6 +589,9 @@ func saveSettings(*ui.Button) {
 					}
 				}
 			}
+		} else {
+			updateSaveProgress()
+			updateSaveProgress()
 		}
 		updateSaveProgress()
 		time.Sleep(time.Second)
