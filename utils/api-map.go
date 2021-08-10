@@ -6,6 +6,9 @@ import (
 	"gitlab.com/NebulousLabs/go-upnp"
 )
 
-var Serverobj *server.Server
-var Log *logrus.Logger
-var Conf CustomConfig
+var (
+	Srv    *server.Server
+	Log    *logrus.Logger
+	Conf   *CustomConfig
+	Router *upnp.IGD
+)
