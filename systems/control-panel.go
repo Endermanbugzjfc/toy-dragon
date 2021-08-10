@@ -408,6 +408,7 @@ func ControlPanel() {
 	wrd.Append("Simulation distance: ", tickRadius, false)
 	tickRadius.SetPadded(true)
 
+	// TODO: Disable after server start
 	tickRadiusEntry := ui.NewSpinbox(0, 32768)
 	tickRadius.Append(tickRadiusEntry, true)
 	initSettingsOption(func() {
@@ -433,8 +434,16 @@ func ControlPanel() {
 	pCate.Append("Maximum chunk distance: ", renderRadius, true)
 	renderRadius.SetPadded(true)
 
+	// TODO: Disable after server start
 	renderRadiusEntry := ui.NewSpinbox(2, math.MaxInt32)
 	renderRadius.Append(renderRadiusEntry, true)
+	initSettingsOption(func() {
+		renderRadiusEntry.SetValue(utils.Conf.Player.MaximumChunkRadius)
+	})
+	renderRadiusEntry.OnChanged(func(renderRadiusEntry *ui.Spinbox) {
+		utils.Conf.Player.MaximumChunkRadius = renderRadiusEntry.Value()
+		configUpdate()
+	})
 
 	renderRadiusHelp := ui.NewButton("?")
 	renderRadius.Append(renderRadiusHelp, false)
@@ -442,17 +451,32 @@ func ControlPanel() {
 		ui.MsgBox(cp, "Maximum Chunk Radius", "Maximum Chunk Radius is the maximum chunk radius that players may set in their settings. If they try to set it above this number, it will be capped and set to the max.")
 	})
 
+	// TODO: Disable after server start
 	savePData := ui.NewHorizontalBox()
 	pCate.Append("Save player data: ", savePData, true)
 	savePData.SetPadded(true)
 
 	savePDataSwitch := ui.NewCheckbox("")
 	savePData.Append(savePDataSwitch, false)
+	initSettingsOption(func() {
+		savePDataSwitch.SetChecked(utils.Conf.Player.SaveData)
+	})
+	savePDataSwitch.OnToggled(func(savePDataSwitch *ui.Checkbox) {
+		utils.Conf.Player.SaveData = savePDataSwitch.Checked()
+		configUpdate()
+	})
 
 	savePData.Append(ui.NewLabel("Data folder: "), false)
 
 	pDataFolder := ui.NewEntry()
 	savePData.Append(pDataFolder, true)
+	initSettingsOption(func() {
+		pDataFolder.SetText(utils.Conf.Player.Folder)
+	})
+	pDataFolder.OnChanged(func(pDataFolder *ui.Entry) {
+		utils.Conf.Player.Folder = pDataFolder.Text()
+		configUpdate()
+	})
 
 	pDataFolderBrowse := ui.NewButton("Browse")
 	savePData.Append(pDataFolderBrowse, false)
@@ -462,6 +486,8 @@ func ControlPanel() {
 			return
 		}
 		pDataFolder.SetText(filepath.Dir(path))
+		utils.Conf.Player.Folder = pDataFolder.Text()
+		configUpdate()
 	})
 
 	settingsCatePicker.OnSelected(func(combobox *ui.Combobox) {
