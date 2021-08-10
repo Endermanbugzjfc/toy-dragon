@@ -366,15 +366,31 @@ func ControlPanel() {
 	settings.Append(wrd, false)
 	wrd.SetPadded(true)
 
+	// TODO: Disable after server start
 	wrdName := ui.NewEntry()
 	wrd.Append("World display name: ", wrdName, true)
+	initSettingsOption(func() {
+		wrdName.SetText(utils.Conf.World.Name)
+	})
+	wrdName.OnChanged(func(wrdName *ui.Entry) {
+		utils.Conf.World.Name = wrdName.Text()
+		configUpdate()
+	})
 
 	wrdFolder := ui.NewHorizontalBox()
 	wrd.Append("World data folder: ", wrdFolder, true)
 	wrdFolder.SetPadded(true)
 
+	// TODO: Disable after server start
 	wrdFolderEntry := ui.NewEntry()
 	wrdFolder.Append(wrdFolderEntry, true)
+	initSettingsOption(func() {
+		wrdFolderEntry.SetText(utils.Conf.World.Folder)
+	})
+	wrdFolderEntry.OnChanged(func(wrdFolderEntry *ui.Entry) {
+		utils.Conf.World.Folder = wrdFolderEntry.Text()
+		configUpdate()
+	})
 
 	wrdFolderBrowser := ui.NewButton("Browse")
 	wrdFolder.Append(wrdFolderBrowser, false)
@@ -384,6 +400,8 @@ func ControlPanel() {
 			return
 		}
 		wrdFolderEntry.SetText(filepath.Dir(path))
+		utils.Conf.World.Folder = wrdFolderEntry.Text()
+		configUpdate()
 	})
 
 	tickRadius := ui.NewHorizontalBox()
@@ -392,6 +410,12 @@ func ControlPanel() {
 
 	tickRadiusEntry := ui.NewSpinbox(0, 32768)
 	tickRadius.Append(tickRadiusEntry, true)
+	initSettingsOption(func() {
+		tickRadiusEntry.SetValue(utils.Conf.World.SimulationDistance)
+	})
+	tickRadiusEntry.OnChanged(func(tickRadiusEntry *ui.Spinbox) {
+		utils.Conf.World.SimulationDistance = tickRadiusEntry.Value()
+	})
 
 	tickRadiusHelp := ui.NewButton("?")
 	tickRadius.Append(tickRadiusHelp, false)
