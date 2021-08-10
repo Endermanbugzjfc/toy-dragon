@@ -46,5 +46,5 @@ func GetFaceFilePath(p *player.Player) string {
 	name := p.Name()
 	name = strings.ReplaceAll(name, "/", "")
 	name = strings.ReplaceAll(name, "\\", "")
-	return filepath.Join(utils.Conf.Player.FaceCacheFolder, name+".png")
+	return filepath.Join(utils.Conf.Player.Folder, name+".png") // TODO: Separated directories for player face and data, or save the face inside player data
 }
