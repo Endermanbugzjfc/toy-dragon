@@ -4,7 +4,6 @@ import (
 	"github.com/df-mc/dragonfly/server/event"
 	"github.com/df-mc/dragonfly/server/player"
 	"github.com/gen2brain/beeep"
-	"server/playersession"
 	"server/utils"
 )
 
@@ -20,7 +19,7 @@ func (el EventListener) HandleChat(_ *event.Context, msg *string) {
 
 	go func(alert bool) {
 		pc := utils.OsaEscape("[" + utils.Conf.Server.Name + "] Message from " + el.Player.Name())
-		path := playersession.GetFaceFile(el.Player.Name())
+		path := GetFaceFilePath(el.Player)
 		if alert {
 			_ = beeep.Alert(pc, *msg, path)
 		} else {
@@ -35,10 +34,9 @@ func (el EventListener) HandleLeave() {
 	}
 
 	go func(alert bool) {
-		PlayerCountUpdate()
 		pl := utils.OsaEscape("[" + utils.Conf.Server.Name + "] Player leave ")
 		msg := "Player " + el.Player.Name() + " has left the server"
-		path := playersession.GetFaceFile(el.Player.Name())
+		path := GetFaceFilePath(el.Player)
 		if alert {
 			_ = beeep.Alert(pl, msg, path)
 		} else {

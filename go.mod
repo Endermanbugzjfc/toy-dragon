@@ -6,6 +6,8 @@ require (
 	github.com/andlabs/ui v0.0.0-20200610043537-70a69d6ae31e
 	github.com/df-mc/dragonfly v0.1.1-0.20210703100851-306fccbcab80
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/gen2brain/beeep v0.0.0-20210529141713-5586760f0cc1
+	github.com/gen2brain/dlgs v0.0.0-20210609125024-bf6c92aaa984
 	github.com/go-gl/mathgl v1.0.0
 	github.com/pelletier/go-toml v1.9.2
 	github.com/sirupsen/logrus v1.8.1
